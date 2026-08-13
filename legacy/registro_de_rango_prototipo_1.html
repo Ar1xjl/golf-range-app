@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Registro de Rango - Juan</title>
+</head>
+<body style="margin:0;">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  #gc-app, #gc-app * { box-sizing: border-box; }
+
+  #gc-app {
+    --bg: #F5F1E4;
+    --bg-card: #FFFDF7;
+    --ink: #20301F;
+    --ink-soft: #5B6B57;
+    --green: #2F5233;
+    --green-deep: #1D2E1F;
+    --gold: #C79A3E;
+    --gold-soft: #E9D8AE;
+    --brick: #A94B41;
+    --line: #DCD3BC;
+
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100%;
+    padding: 0 0 40px 0;
+    position: relative;
+  }
+
+  #gc-app .gc-mono { font-family: 'IBM Plex Mono', monospace; }
+  #gc-app .gc-display { font-family: 'Fraunces', serif; }
+
+  #gc-app .gc-header {
+    background: var(--green-deep);
+    color: var(--bg);
+    padding: 22px 20px 18px;
+    border-radius: 0 0 18px 18px;
+  }
+  #gc-app .gc-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 4px 0;
+  }
+  #gc-app .gc-title {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.15;
+  }
+  #gc-app .gc-sub {
+    font-size: 13px;
+    color: #C9D2C4;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  #gc-app .gc-body { padding: 18px 20px 0; }
+
+  #gc-app .gc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  #gc-app .gc-btn {
+    display: block;
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #gc-app .gc-btn-primary { background: var(--green); color: #fff; }
+  #gc-app .gc-btn-primary:active { background: var(--green-deep); }
+  #gc-app .gc-btn-gold { background: var(--gold); color: var(--green-deep); }
+  #gc-app .gc-btn-ghost {
+    background: transparent; color: var(--green);
+    border: 1.5px solid var(--green);
+  }
+  #gc-app .gc-btn-disabled { background: #E4E0D2; color: #9A9587; cursor: default; }
+  #gc-app .gc-btn-sm { padding: 10px 12px; font-size: 13px; }
+
+  #gc-app .gc-row { display: flex; gap: 10px; }
+  #gc-app .gc-row > * { flex: 1; }
+
+  #gc-app .gc-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-radius: 12px;
+    border: 1.5px solid var(--line);
+    margin-bottom: 10px;
+    cursor: pointer;
+    background: #fff;
+  }
+  #gc-app .gc-toggle.on { border-color: var(--green); background: #EEF3EA; }
+  #gc-app .gc-toggle-label { font-weight: 600; font-size: 14px; }
+  #gc-app .gc-toggle-hint { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+  #gc-app .gc-check {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--line); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #fff;
+  }
+  #gc-app .gc-toggle.on .gc-check { background: var(--green); border-color: var(--green); }
+
+  #gc-app .gc-result-row { display: flex; gap: 8px; margin-top: 8px; }
+  #gc-app .gc-result-peg {
+    flex: 1; aspect-ratio: 1; border-radius: 50%;
+    border: 2px solid var(--line);
+    background: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--ink);
+  }
+  #gc-app .gc-result-peg.sel { background: var(--gold); border-color: var(--gold); color: var(--green-deep); }
+
+  #gc-app .gc-seg-row { display: flex; gap: 8px; margin-top: 6px; }
+  #gc-app .gc-seg-btn {
+    flex: 1; text-align: center; padding: 10px 6px; border-radius: 10px;
+    border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; background: #fff; color: var(--ink);
+  }
+  #gc-app .gc-seg-btn.sel { background: var(--green); color: #fff; border-color: var(--green); }
+
+  #gc-app .gc-d-input, #gc-app .gc-d-textarea {
+    width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 6px; background: #fff; color: var(--ink);
+  }
+  #gc-app .gc-d-textarea { font-family: 'Inter', sans-serif; resize: vertical; }
+
+  #gc-app .gc-club-tag {
+    display: inline-block; background: var(--gold-soft); color: var(--green-deep);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;
+  }
+
+  #gc-app .gc-shotnum {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft);
+  }
+
+  #gc-app .gc-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #gc-app .gc-stat {
+    background: #EEF3EA; border-radius: 12px; padding: 12px;
+  }
+  #gc-app .gc-stat-num {
+    font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--green-deep);
+  }
+  #gc-app .gc-stat-label { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+  #gc-app .gc-hist-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  #gc-app .gc-hist-row:last-child { border-bottom: none; }
+
+  #gc-app .gc-empty {
+    text-align: center; padding: 30px 10px; color: var(--ink-soft); font-size: 13px;
+  }
+
+  #gc-app .gc-variant-pill {
+    display: flex; justify-content: space-between; align-items: center;
+    border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+  }
+  #gc-app .gc-variant-pill.active { border-color: var(--green); background: #EEF3EA; }
+  #gc-app .gc-variant-name { font-weight: 600; font-size: 14px; }
+  #gc-app .gc-variant-desc { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  #gc-app .gc-nav-back {
+    background: none; border: none; color: var(--gold); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; cursor: pointer; padding: 0; margin-bottom: 10px;
+  }
+
+  #gc-app .gc-sea-banner {
+    background: #CFE9E5;
+    color: var(--green-deep);
+    padding: 12px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid #B7D9D4;
+  }
+
+  #gc-app .gc-block-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 14px 0 10px;
+  }
+  #gc-app .gc-block-box {
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #gc-app .gc-block-box .gc-bb-name {
+    font-size: 12.5px; font-weight: 600; line-height: 1.25;
+  }
+  #gc-app .gc-block-box .gc-bb-progress {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); margin-top: 4px;
+  }
+  #gc-app .gc-block-box.active { border-color: var(--green); background: #EEF3EA; }
+  #gc-app .gc-block-box.active .gc-bb-progress { color: var(--green); }
+  #gc-app .gc-block-box.complete { border-color: var(--gold); }
+  #gc-app .gc-block-box.complete .gc-bb-progress { color: var(--gold); font-weight: 600; }
+
+  #gc-app .gc-shot-progress {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  #gc-app .gc-mini-pegs { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+  #gc-app .gc-mini-peg {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--line);
+  }
+  #gc-app .gc-mini-peg.done { background: var(--gold); }
+  #gc-app .gc-mini-peg.active { background: var(--green); transform: scale(1.5); }
+
+  #gc-app .gc-focus-banner {
+    background: var(--green-deep); color: #fff; border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 14px; font-size: 13px; line-height: 1.5;
+  }
+  #gc-app .gc-focus-banner b { color: var(--gold); }
+</style>
+
+<div id="gc-app"></div>
+
+<script>
+(function () {
+  const APP = document.getElementById('gc-app');
+
+  // ---------- Shot builders (per-tiro variants: A, B, C, E) ----------
+  function buildShots(count, objetivo, club, target, trackDistance) {
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      arr.push({ objetivo, club, target, trackDistance: !!trackDistance, thinkBox: false, playBox: false, resultado: null, distancia: null });
+    }
+    return arr;
+  }
+
+  function buildAlternating(pattern, total, objetivo, trackDistance) {
+    const arr = [];
+    for (let i = 0; i < total; i++) {
+      const [club, target] = pattern[i % pattern.length];
+      arr.push({ objetivo, club, target, trackDistance: !!trackDistance, thinkBox: false, playBox: false, resultado: null, distancia: null });
+    }
+    return arr;
+  }
+
+  function buildSituational(situations) {
+    // situations: [ [objetivo, club, target, count], ... ]
+    const arr = [];
+    situations.forEach(([objetivo, club, target, count]) => {
+      for (let i = 0; i < count; i++) arr.push({ objetivo, club, target, trackDistance: false, thinkBox: false, playBox: false, resultado: null, distancia: null });
+    });
+    return arr;
+  }
+
+  // ---------- Variant A: Approach corto <120 yds ----------
+  function freshVariantA() {
+    return {
+      key: 'A', type: 'shots', name: 'Approach corto (<120 yds)',
+      blocks: [
+        { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(6, 'Activacion, sin objetivo de resultado', '56\u00b0 / PW', '-') },
+        { name: 'Precision por distancia', shortLabel: 'Precision', shots: buildAlternating(
+          [['60\u00b0', '40 yds'], ['56\u00b0', '60 yds'], ['52\u00b0', '80 yds'], ['56\u00b0', '100 yds']], 24, 'Blanco especifico', true) },
+        { name: 'Control de trayectoria', shortLabel: 'Trayectoria', shots: buildShots(8, 'Alternar tiro alto y bajo/controlado', '56\u00b0', 'Alto vs bajo') },
+        { name: 'Simulacion de presion (up-and-down)', shortLabel: 'Presion', shots: buildShots(12, 'Posicion variada, registrar si queda a 1 putt', '60/56/52\u00b0', 'Salvar par') },
+      ],
+    };
+  }
+
+  // ---------- Variant B: Distancia media 120-150 yds ----------
+  function freshVariantB() {
+    return {
+      key: 'B', type: 'shots', name: 'Distancia media (120-150 yds)',
+      blocks: [
+        { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(6, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-') },
+        { name: 'Precision por distancia', shortLabel: 'Precision', shots: buildAlternating(
+          [['PW', '120-130 yds'], ['9 Hierro', '130-140 yds'], ['8 Hierro', '140-150 yds'], ['9 Hierro', '130-140 yds']], 24, 'Blanco especifico', true) },
+        { name: 'Control de viento / trayectoria', shortLabel: 'Viento', shots: buildShots(8, 'Trayectoria baja para viento', '9 Hierro', 'Bajo control') },
+        { name: 'Simulacion de presion (10-Shot Shootout)', shortLabel: 'Presion', shots: buildShots(12, 'Alternar palo y blanco, rutina completa', 'PW / 9 / 8', 'Blanco variable') },
+      ],
+    };
+  }
+
+  // ---------- Variant C: Precision hierros largos 150-185 yds ----------
+  function freshVariantC() {
+    return {
+      key: 'C', type: 'shots', name: 'Precision hierros largos (150-185 yds)',
+      blocks: [
+        { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(4, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-') },
+        { name: 'Precision 150-185', shortLabel: 'Precision', shots: buildAlternating(
+          [['7 Hierro', '150-160 yds'], ['6 Hierro', '160-170 yds'], ['5 Hierro', '175-185 yds']], 16, 'Blanco especifico, control de distancia', true) },
+        { name: 'Simulacion de presion', shortLabel: 'Presion', shots: buildShots(8, 'Rutina completa, blanco variable', '5H / 6H / 7H', 'Blanco variable') },
+        { name: 'Cierre con proposito', shortLabel: 'Cierre', shots: buildShots(4, 'Palo de confianza, cerrar en positivo', 'PW / SW', '<120 yds') },
+      ],
+    };
+  }
+
+  // ---------- Variant E: Drive y recuperacion ----------
+  function freshVariantE() {
+    return {
+      key: 'E', type: 'shots', name: 'Drive y recuperacion',
+      blocks: [
+        { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(6, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-') },
+        { name: 'Driver: precision de fairway', shortLabel: 'Driver', shots: buildShots(16, 'Blanco angosto, tempo relajado, no buscar distancia maxima', 'Driver', 'Fairway') },
+        { name: 'Recuperacion (54-Shot Challenge)', shortLabel: 'Recuperacion', shots: buildSituational([
+          ['Situacion 1: rough / pelota tapada - salir limpio', 'Hibrido 3 (19\u00b0)', 'Zona approach', 5],
+          ['Situacion 2: obstaculo adelante - pegar bajo', 'Hierro medio', 'Pasar bajo', 5],
+          ['Situacion 3: lie incomodo (pendiente)', 'Hierro medio', 'Contacto solido', 5],
+          ['Situacion 4: layup inteligente (conservador)', '8/9 Hierro', 'Centro blanco', 5],
+        ]) },
+        { name: 'Cierre con proposito', shortLabel: 'Cierre', shots: buildShots(8, 'Approach de confianza, terminar en positivo', 'PW / SW', '<120 yds') },
+      ],
+    };
+  }
+
+  // ---------- Variant D: Putting semanal (registro por bloque) ----------
+  function freshVariantD() {
+    return {
+      key: 'D', type: 'blocks', name: 'Putting semanal',
+      blocks: [
+        { name: 'Calibracion de velocidad', shortLabel: 'Calibracion', objetivo: '5-6 putts desde ~15 pies, sentir la velocidad del green', cantidadSugerida: 6, cantidadReal: null, thinkBox: null, playBox: null, resultado: null, pctCirculo: null, notas: '' },
+        { name: 'Ladder de distancia', shortLabel: 'Ladder', objetivo: 'Putts a 10/15/20/25/30 pies, dejar dentro del circulo de 3 pies', cantidadSugerida: 15, cantidadReal: null, thinkBox: null, playBox: null, resultado: null, pctCirculo: null, notas: '' },
+        { name: 'Putts cortos de consolidacion', shortLabel: 'Consolidacion', objetivo: 'Jugar el putt de vuelta de cada lag del bloque anterior', cantidadSugerida: 15, cantidadReal: null, thinkBox: null, playBox: null, resultado: null, pctCirculo: null, notas: '' },
+        { name: 'Simulacion de presion', shortLabel: 'Presion', objetivo: '6-8 posiciones distintas (distancia y quiebre variados), rutina completa', cantidadSugerida: 8, cantidadReal: null, thinkBox: null, playBox: null, resultado: null, pctCirculo: null, notas: '' },
+      ],
+    };
+  }
+
+  const VARIANT_DEFS = {
+    A: { label: 'Variante A \u2014 Approach corto', desc: '50 tiros \u00b7 <120 yds', factory: freshVariantA },
+    B: { label: 'Variante B \u2014 Distancia media', desc: '50 tiros \u00b7 120-150 yds', factory: freshVariantB },
+    C: { label: 'Variante C \u2014 Precision hierros largos', desc: '32 tiros \u00b7 150-185 yds', factory: freshVariantC },
+    D: { label: 'Variante D \u2014 Putting semanal', desc: '4 bloques \u00b7 green real', factory: freshVariantD },
+    E: { label: 'Variante E \u2014 Drive y recuperacion', desc: '50 tiros \u00b7 fairway + plan B', factory: freshVariantE },
+  };
+  const VARIANT_ORDER = ['A', 'B', 'C', 'D', 'E'];
+
+  // ---------- State ----------
+  let state = { screen: 'home', session: null, selectedVariant: 'C', currentFlatIndex: 0, loading: true };
+
+  function flatten(session) {
+    const flat = [];
+    session.blocks.forEach((b, bi) => b.shots.forEach((s, si) => flat.push({ blockIndex: bi, blockName: b.name, shotIndex: si, ...s })));
+    return flat;
+  }
+
+  // ---------- Storage helpers ----------
+  // Uses Claude's artifact storage when available (inside claude.ai); falls back to
+  // localStorage automatically when the file is opened standalone (e.g. in mobile Safari),
+  // so it keeps working the same way either way.
+  const storage = (window.storage && typeof window.storage.get === 'function')
+    ? window.storage
+    : {
+        async get(key) {
+          const v = localStorage.getItem(key);
+          if (v === null) throw new Error('not found');
+          return { key, value: v };
+        },
+        async set(key, value) { localStorage.setItem(key, value); return { key, value }; },
+        async delete(key) { localStorage.removeItem(key); return { key, deleted: true }; },
+        async list(prefix) {
+          const keys = Object.keys(localStorage).filter((k) => !prefix || k.startsWith(prefix));
+          return { keys };
+        },
+      };
+
+  async function getIndex() {
+    try {
+      const r = await storage.get('sessions-index');
+      return r ? JSON.parse(r.value) : [];
+    } catch (e) { return []; }
+  }
+  async function saveIndex(idx) {
+    try { await storage.set('sessions-index', JSON.stringify(idx)); } catch (e) { console.error(e); }
+  }
+  async function saveSession(session) {
+    try { await storage.set('session:' + session.id, JSON.stringify(session)); } catch (e) { console.error(e); }
+  }
+  async function loadSession(id) {
+    try {
+      const r = await storage.get('session:' + id);
+      return r ? JSON.parse(r.value) : null;
+    } catch (e) { return null; }
+  }
+  async function loadAllForVariant(variantKey) {
+    const idx = await getIndex();
+    const entries = idx.filter((e) => e.variant === variantKey && e.finished);
+    const sessions = [];
+    for (const e of entries) {
+      const s = await loadSession(e.id);
+      if (s) sessions.push(s);
+    }
+    sessions.sort((a, b) => a.id - b.id);
+    return sessions;
+  }
+
+  // ---------- Stats (unified across shot-based and block-based variants) ----------
+  function computeStats(session) {
+    if (session.type === 'blocks') {
+      const blocks = session.blocks;
+      const total = blocks.reduce((sum, b) => sum + (b.cantidadReal != null ? b.cantidadReal : (b.cantidadSugerida || 0)), 0);
+      const mapTF = (v) => (v === 'Si' ? 1 : (v === 'Parcial' ? 0.5 : (v === 'No' ? 0 : null)));
+      const thinkVals = blocks.map((b) => mapTF(b.thinkBox)).filter((v) => v != null);
+      const playVals = blocks.map((b) => mapTF(b.playBox)).filter((v) => v != null);
+      const resultVals = blocks.map((b) => b.resultado).filter((v) => v != null);
+      const pctThink = thinkVals.length ? thinkVals.reduce((a, b) => a + b, 0) / thinkVals.length : 0;
+      const pctPlay = playVals.length ? playVals.reduce((a, b) => a + b, 0) / playVals.length : 0;
+      const avgResultado = resultVals.length ? resultVals.reduce((a, b) => a + b, 0) / resultVals.length : 0;
+      const byBlock = blocks.map((b) => ({ name: b.shortLabel || b.name, avg: b.resultado }));
+      return { total, pctThink, pctPlay, avgResultado, byBlock };
+    }
+
+    const flat = flatten(session);
+    const total = flat.length;
+    const think = flat.filter((s) => s.thinkBox).length;
+    const play = flat.filter((s) => s.playBox).length;
+    const results = flat.filter((s) => s.resultado != null).map((s) => s.resultado);
+    const avg = results.length ? results.reduce((a, b) => a + b, 0) / results.length : 0;
+
+    const byBlock = session.blocks.map((b) => {
+      const rs = b.shots.filter((s) => s.resultado != null).map((s) => s.resultado);
+      return { name: b.shortLabel || b.name, avg: rs.length ? rs.reduce((a, b2) => a + b2, 0) / rs.length : null };
+    });
+
+    return { total, pctThink: total ? think / total : 0, pctPlay: total ? play / total : 0, avgResultado: avg, byBlock };
+  }
+
+  function suggestFocus(history) {
+    if (!history.length) return null;
+    const last3 = history.slice(-3);
+    const blockAverages = {};
+    last3.forEach((s) => {
+      const stats = computeStats(s);
+      stats.byBlock.forEach((b) => {
+        if (b.avg == null) return;
+        if (!blockAverages[b.name]) blockAverages[b.name] = [];
+        blockAverages[b.name].push(b.avg);
+      });
+    });
+    let worst = null;
+    Object.keys(blockAverages).forEach((name) => {
+      const vals = blockAverages[name];
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      if (!worst || avg < worst.avg) worst = { name, avg };
+    });
+    return worst;
+  }
+
+  // ---------- CSV export ----------
+  const CSV_HEADER = ['Variante', 'SesionNumero', 'Fecha', 'Estado', 'Bloque', 'Tipo', 'Item',
+    'PaloOCantidadPutts', 'Objetivo', 'Target', 'ThinkBox', 'PlayBox', 'Resultado', 'DistanciaReal', 'PctCirculo3pies', 'Notas'];
+
+  function csvEscape(v) {
+    if (v == null) return '';
+    const s = String(v);
+    if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function sessionToRows(session, finished) {
+    const rows = [];
+    const estado = finished ? 'Finalizada' : 'En progreso';
+    const fecha = new Date(session.date).toLocaleDateString('es-AR');
+    if (session.type === 'blocks') {
+      session.blocks.forEach((b, bi) => {
+        rows.push([session.key, session.sessionNumber, fecha, estado, b.name, 'bloque', bi + 1,
+          (b.cantidadReal != null ? b.cantidadReal : b.cantidadSugerida), b.objetivo, '',
+          b.thinkBox || '', b.playBox || '', b.resultado != null ? b.resultado : '', '',
+          b.pctCirculo != null ? b.pctCirculo : '', b.notas || '']);
+      });
+    } else {
+      session.blocks.forEach((b) => {
+        b.shots.forEach((s, si) => {
+          rows.push([session.key, session.sessionNumber, fecha, estado, b.name, 'tiro', si + 1,
+            s.club, s.objetivo, s.target || '', s.thinkBox ? 'X' : '', s.playBox ? 'X' : '',
+            s.resultado != null ? s.resultado : '', s.distancia != null ? s.distancia : '', '', '']);
+        });
+      });
+    }
+    return rows;
+  }
+
+  function downloadCSV(csvString, filename) {
+    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  async function exportCSV(variantKey) {
+    const idx = await getIndex();
+    const entries = variantKey ? idx.filter((e) => e.variant === variantKey) : idx;
+    const rows = [CSV_HEADER];
+    for (const e of entries) {
+      const s = await loadSession(e.id);
+      if (s) rows.push(...sessionToRows(s, e.finished));
+    }
+    const csv = rows.map((r) => r.map(csvEscape).join(',')).join('\n');
+    const suffix = variantKey ? '_variante_' + variantKey : '_todo';
+    downloadCSV(csv, 'registro_rango_juan' + suffix + '_' + new Date().toISOString().slice(0, 10) + '.csv');
+  }
+
+  // ---------- Render dispatcher ----------
+  function render() {
+    if (state.loading) { APP.innerHTML = '<div class="gc-empty">Cargando...</div>'; return; }
+    if (state.screen === 'home') return renderHome();
+    if (state.screen === 'session') {
+      return state.session.type === 'blocks' ? renderBlockSession() : renderShotSession();
+    }
+    if (state.screen === 'summary') return renderSummary();
+    if (state.screen === 'history') return renderHistory();
+  }
+
+  async function renderHome() {
+    const sel = state.selectedVariant;
+    const sessions = await loadAllForVariant(sel);
+    const fullIdx = await getIndex();
+    const focus = suggestFocus(sessions);
+    const last = sessions[sessions.length - 1];
+    const lastStats = last ? computeStats(last) : null;
+
+    let focusHtml = '';
+    if (focus) {
+      focusHtml = '<div class="gc-focus-banner">Foco sugerido para la proxima sesion: <b>' + focus.name + '</b><br>' +
+        'es el bloque con menor resultado promedio en tus ultimas practicas (' + focus.avg.toFixed(1) + '/5).</div>';
+    }
+
+    let lastHtml = '';
+    if (lastStats) {
+      lastHtml = '<div class="gc-card">' +
+        '<div class="gc-eyebrow" style="color:var(--green)">Ultima sesion \u2014 ' + VARIANT_DEFS[sel].label.split('\u2014')[1].trim() + '</div>' +
+        '<div class="gc-stat-grid">' +
+        '<div class="gc-stat"><div class="gc-stat-num">' + lastStats.avgResultado.toFixed(1) + '</div><div class="gc-stat-label">Resultado promedio</div></div>' +
+        '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(lastStats.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box</div></div>' +
+        '</div></div>';
+    }
+
+    const pillsHtml = VARIANT_ORDER.map((key) => {
+      const v = VARIANT_DEFS[key];
+      return '<div class="gc-variant-pill ' + (key === sel ? 'active' : '') + '" data-variant="' + key + '">' +
+        '<div><div class="gc-variant-name">' + v.label + '</div><div class="gc-variant-desc">' + v.desc + '</div></div>' +
+        '</div>';
+    }).join('');
+
+    APP.innerHTML =
+      '<div class="gc-header">' +
+        '<div class="gc-eyebrow">Practica de golf \u00b7 Juan</div>' +
+        '<h1 class="gc-title">Registro de rango</h1>' +
+        '<div class="gc-sub">Elegi una variante y registra tu practica.</div>' +
+      '</div>' +
+      '<div class="gc-body">' +
+        focusHtml + lastHtml +
+        '<div class="gc-card">' +
+          '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
+          pillsHtml +
+          '<button class="gc-btn gc-btn-primary" id="gc-start-btn" style="margin-top:6px;">Empezar sesion</button>' +
+        '</div>' +
+        (sessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + sessions.length + ')</button>' : '') +
+        (fullIdx.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-btn" style="margin-top:10px;">Exportar todo a CSV</button>' : '') +
+      '</div>';
+
+    document.querySelectorAll('.gc-variant-pill').forEach((el) => {
+      el.onclick = () => { state.selectedVariant = el.dataset.variant; render(); };
+    });
+    document.getElementById('gc-start-btn').onclick = async () => {
+      const factory = VARIANT_DEFS[state.selectedVariant].factory;
+      state.session = factory();
+      state.session.id = Date.now();
+      state.session.date = new Date().toISOString();
+      const existingIdx = await getIndex();
+      state.session.sessionNumber = existingIdx.filter((e) => e.variant === state.selectedVariant).length + 1;
+      state.currentFlatIndex = 0;
+      state.screen = 'session';
+      render();
+    };
+    const histBtn = document.getElementById('gc-hist-btn');
+    if (histBtn) histBtn.onclick = () => { state.screen = 'history'; render(); };
+    const exportBtn = document.getElementById('gc-export-btn');
+    if (exportBtn) exportBtn.onclick = () => exportCSV(null);
+  }
+
+  function seaBanner(session) {
+    return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' \u2014 Variante ' + session.key + ': ' + session.name + '</div>';
+  }
+
+  function blockStartIndex(session, blockIndex) {
+    let n = 0;
+    for (let b = 0; b < blockIndex; b++) n += session.blocks[b].shots.length;
+    return n;
+  }
+
+  function syncShot(shot) {
+    state.session.blocks[shot.blockIndex].shots[shot.shotIndex] = {
+      objetivo: shot.objetivo, club: shot.club, target: shot.target, trackDistance: shot.trackDistance,
+      thinkBox: shot.thinkBox, playBox: shot.playBox, resultado: shot.resultado, distancia: shot.distancia,
+    };
+  }
+
+  function renderShotSession() {
+    const flat = flatten(state.session);
+    const i = state.currentFlatIndex;
+    const shot = flat[i];
+    const blockShots = flat.filter((s) => s.blockIndex === shot.blockIndex);
+    const shotInBlock = blockShots.findIndex((s) => s.shotIndex === shot.shotIndex) + 1;
+
+    const blockBoxes = state.session.blocks.map((b, bi) => {
+      const shots = b.shots;
+      const done = shots.filter((s) => s.resultado != null).length;
+      const isActive = bi === shot.blockIndex;
+      const isComplete = done === shots.length;
+      return '<div class="gc-block-box ' + (isActive ? 'active' : '') + ' ' + (isComplete && !isActive ? 'complete' : '') + '" data-block="' + bi + '">' +
+        '<div class="gc-bb-name">' + b.shortLabel + '</div>' +
+        '<div class="gc-bb-progress">' + done + '/' + shots.length + (isComplete ? ' \u2713' : '') + '</div></div>';
+    }).join('');
+
+    APP.innerHTML =
+      seaBanner(state.session) +
+      '<div class="gc-body" style="padding-top:16px;">' +
+        '<div class="gc-block-nav">' + blockBoxes + '</div>' +
+        '<div class="gc-shot-progress">' + shot.blockName + ' \u00b7 Tiro ' + shotInBlock + '/' + blockShots.length +
+          '<div class="gc-mini-pegs">' + blockShots.map((s) => '<div class="gc-mini-peg ' + (s.shotIndex === shot.shotIndex ? 'active' : (s.resultado != null ? 'done' : '')) + '"></div>').join('') + '</div>' +
+        '</div>' +
+        '<div class="gc-card">' +
+          '<div class="gc-club-tag">' + shot.club + '</div>' +
+          '<div class="gc-shotnum">' + shot.objetivo + (shot.target && shot.target !== '-' ? ' \u00b7 ' + shot.target : '') + '</div>' +
+          '<div style="margin-top:16px;">' +
+            '<div class="gc-toggle ' + (shot.thinkBox ? 'on' : '') + '" id="gc-think">' +
+              '<div><div class="gc-toggle-label">Think Box</div><div class="gc-toggle-hint">Elegiste objetivo y palo antes del tiro</div></div>' +
+              '<div class="gc-check">' + (shot.thinkBox ? '\u2713' : '') + '</div></div>' +
+            '<div class="gc-toggle ' + (shot.playBox ? 'on' : '') + '" id="gc-play">' +
+              '<div><div class="gc-toggle-label">Play Box</div><div class="gc-toggle-hint">Ejecutaste sin re-analizar</div></div>' +
+              '<div class="gc-check">' + (shot.playBox ? '\u2713' : '') + '</div></div>' +
+          '</div>' +
+          '<div style="margin-top:10px;">' +
+            '<div class="gc-toggle-label" style="margin-bottom:4px;">Post-shot \u2014 calidad de la decision</div>' +
+            '<div class="gc-result-row">' + [1, 2, 3, 4, 5].map((n) => '<div class="gc-result-peg ' + (shot.resultado === n ? 'sel' : '') + '" data-n="' + n + '">' + n + '</div>').join('') + '</div>' +
+          '</div>' +
+          (shot.trackDistance ? '<div style="margin-top:14px;"><div class="gc-toggle-label" style="margin-bottom:6px;">Distancia real (opcional, yds)</div>' +
+            '<input type="number" id="gc-dist-input" class="gc-d-input" value="' + (shot.distancia != null ? shot.distancia : '') + '" /></div>' : '') +
+        '</div>' +
+        '<div class="gc-row">' +
+          '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-prev-btn" ' + (i === 0 ? 'disabled' : '') + '>Anterior</button>' +
+          '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-next-btn">' + (i === flat.length - 1 ? 'Finalizar' : 'Siguiente') + '</button>' +
+        '</div>' +
+        '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      '</div>';
+
+    document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(shot); render(); };
+    document.getElementById('gc-play').onclick = () => { shot.playBox = !shot.playBox; syncShot(shot); render(); };
+    document.querySelectorAll('.gc-result-peg').forEach((el) => {
+      el.onclick = () => { shot.resultado = parseInt(el.dataset.n, 10); syncShot(shot); render(); };
+    });
+    if (shot.trackDistance) {
+      document.getElementById('gc-dist-input').onchange = (e) => {
+        shot.distancia = e.target.value ? parseFloat(e.target.value) : null;
+        syncShot(shot);
+      };
+    }
+    document.querySelectorAll('.gc-block-box').forEach((el) => {
+      el.onclick = () => { state.currentFlatIndex = blockStartIndex(state.session, parseInt(el.dataset.block, 10)); render(); };
+    });
+    document.getElementById('gc-prev-btn').onclick = () => { if (i > 0) { state.currentFlatIndex--; render(); } };
+    document.getElementById('gc-next-btn').onclick = async () => {
+      if (i === flat.length - 1) { await finishSession(); } else { state.currentFlatIndex++; render(); }
+    };
+    document.getElementById('gc-exit-btn').onclick = async () => {
+      await persistCurrentSession(false);
+      state.screen = 'home'; state.session = null; render();
+    };
+  }
+
+  function renderBlockSession() {
+    const session = state.session;
+    const cardsHtml = session.blocks.map((b, bi) => {
+      const segRow = (field, current) => '<div class="gc-seg-row" data-field="' + field + '" data-block="' + bi + '">' +
+        ['Si', 'Parcial', 'No'].map((opt) => '<div class="gc-seg-btn ' + (current === opt ? 'sel' : '') + '" data-val="' + opt + '">' + opt + '</div>').join('') + '</div>';
+      const resultRow = '<div class="gc-result-row" data-field="resultado" data-block="' + bi + '">' +
+        [1, 2, 3, 4, 5].map((n) => '<div class="gc-result-peg ' + (b.resultado === n ? 'sel' : '') + '" data-n="' + n + '">' + n + '</div>').join('') + '</div>';
+
+      return '<div class="gc-card">' +
+        '<div class="gc-eyebrow" style="color:var(--green)">' + b.name + '</div>' +
+        '<div class="gc-shotnum" style="margin-bottom:10px;">' + b.objetivo + '</div>' +
+        '<div class="gc-toggle-label">Cantidad de putts</div>' +
+        '<input type="number" class="gc-d-input" data-field="cantidadReal" data-block="' + bi + '" value="' + (b.cantidadReal != null ? b.cantidadReal : b.cantidadSugerida) + '" />' +
+        '<div class="gc-toggle-label" style="margin-top:12px;">Think Box</div>' + segRow('thinkBox', b.thinkBox) +
+        '<div class="gc-toggle-label" style="margin-top:10px;">Play Box</div>' + segRow('playBox', b.playBox) +
+        '<div class="gc-toggle-label" style="margin-top:10px;">Resultado promedio (1-5)</div>' + resultRow +
+        '<div class="gc-toggle-label" style="margin-top:10px;">% en circulo de 3 pies</div>' +
+        '<input type="number" min="0" max="100" class="gc-d-input" data-field="pctCirculo" data-block="' + bi + '" placeholder="0-100" value="' + (b.pctCirculo != null ? b.pctCirculo : '') + '" />' +
+        '<div class="gc-toggle-label" style="margin-top:10px;">Notas</div>' +
+        '<textarea class="gc-d-textarea" data-field="notas" data-block="' + bi + '" rows="2" placeholder="Opcional">' + (b.notas || '') + '</textarea>' +
+        '</div>';
+    }).join('');
+
+    APP.innerHTML =
+      seaBanner(session) +
+      '<div class="gc-body" style="padding-top:16px;">' +
+        cardsHtml +
+        '<button class="gc-btn gc-btn-primary" id="gc-finish-d-btn">Finalizar sesion</button>' +
+        '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      '</div>';
+
+    document.querySelectorAll('.gc-d-input, .gc-d-textarea').forEach((el) => {
+      el.onchange = (e) => {
+        const bi = parseInt(el.dataset.block, 10);
+        const field = el.dataset.field;
+        let val = e.target.value;
+        if (field === 'cantidadReal' || field === 'pctCirculo') val = val === '' ? null : parseFloat(val);
+        session.blocks[bi][field] = val;
+      };
+    });
+    document.querySelectorAll('.gc-seg-row').forEach((row) => {
+      row.querySelectorAll('.gc-seg-btn').forEach((btn) => {
+        btn.onclick = () => {
+          const bi = parseInt(row.dataset.block, 10);
+          session.blocks[bi][row.dataset.field] = btn.dataset.val;
+          render();
+        };
+      });
+    });
+    document.querySelectorAll('.gc-result-row').forEach((row) => {
+      row.querySelectorAll('.gc-result-peg').forEach((peg) => {
+        peg.onclick = () => {
+          const bi = parseInt(row.dataset.block, 10);
+          session.blocks[bi].resultado = parseInt(peg.dataset.n, 10);
+          render();
+        };
+      });
+    });
+    document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
+    document.getElementById('gc-exit-d-btn').onclick = async () => {
+      await persistCurrentSession(false);
+      state.screen = 'home'; state.session = null; render();
+    };
+  }
+
+  async function persistCurrentSession(finished) {
+    if (!state.session) return;
+    await saveSession(state.session);
+    const idx = await getIndex();
+    const existing = idx.find((e) => e.id === state.session.id);
+    const entry = { id: state.session.id, variant: state.session.key, date: state.session.date, finished };
+    if (existing) Object.assign(existing, entry); else idx.push(entry);
+    await saveIndex(idx);
+  }
+
+  async function finishSession() {
+    await persistCurrentSession(true);
+    state.screen = 'summary';
+    render();
+  }
+
+  async function renderSummary() {
+    const stats = computeStats(state.session);
+    const history = await loadAllForVariant(state.session.key);
+    const prev = history.length > 1 ? history[history.length - 2] : null;
+    const prevStats = prev ? computeStats(prev) : null;
+    const diff = prevStats ? (stats.avgResultado - prevStats.avgResultado) : null;
+
+    APP.innerHTML =
+      '<div class="gc-header">' +
+        '<div class="gc-eyebrow">Sesion completa</div>' +
+        '<h1 class="gc-title">Buen trabajo</h1>' +
+        '<div class="gc-sub">Variante ' + state.session.key + ' \u00b7 ' + stats.total + ' ' + (state.session.type === 'blocks' ? 'putts' : 'tiros') + ' registrados</div>' +
+      '</div>' +
+      '<div class="gc-body">' +
+        '<div class="gc-card"><div class="gc-stat-grid">' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + stats.avgResultado.toFixed(1) + '</div><div class="gc-stat-label">Resultado promedio</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(stats.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(stats.pctPlay * 100) + '%</div><div class="gc-stat-label">Play Box</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + (diff == null ? '\u2014' : (diff >= 0 ? '+' : '') + diff.toFixed(1)) + '</div><div class="gc-stat-label">vs sesion anterior</div></div>' +
+        '</div></div>' +
+        '<div class="gc-card"><div class="gc-eyebrow" style="color:var(--green)">Por bloque</div>' +
+          stats.byBlock.map((b) => '<div class="gc-hist-row"><span>' + b.name + '</span><span class="gc-mono">' + (b.avg == null ? '\u2014' : b.avg.toFixed(1)) + '</span></div>').join('') +
+        '</div>' +
+        '<button class="gc-btn gc-btn-gold" id="gc-hist-btn2">Ver historial</button>' +
+        '<div style="height:10px;"></div>' +
+        '<button class="gc-btn gc-btn-ghost" id="gc-home-btn">Volver al inicio</button>' +
+      '</div>';
+
+    document.getElementById('gc-hist-btn2').onclick = () => { state.screen = 'history'; render(); };
+    document.getElementById('gc-home-btn').onclick = () => { state.session = null; state.screen = 'home'; render(); };
+  }
+
+  async function renderHistory() {
+    const variant = state.session ? state.session.key : state.selectedVariant;
+    const history = await loadAllForVariant(variant);
+    const focus = suggestFocus(history);
+
+    let chart = '';
+    if (history.length > 1) {
+      const vals = history.map((s) => computeStats(s).avgResultado);
+      const w = 400, h = 90, pad = 10;
+      const pts = vals.map((v, i) => {
+        const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
+        const y = h - pad - (v / 5) * (h - 2 * pad);
+        return x + ',' + y;
+      }).join(' ');
+      const dots = vals.map((v, i) => {
+        const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
+        const y = h - pad - (v / 5) * (h - 2 * pad);
+        return '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#C79A3E"/>';
+      }).join('');
+      chart = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:90px;">' +
+        '<polyline points="' + pts + '" fill="none" stroke="#2F5233" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' + dots + '</svg>';
+    }
+
+    APP.innerHTML =
+      '<div class="gc-header">' +
+        '<button class="gc-nav-back" id="gc-back-btn">\u25c2 VOLVER</button>' +
+        '<div class="gc-eyebrow">Historial \u00b7 Variante ' + variant + '</div>' +
+        '<h1 class="gc-title">Tendencia</h1>' +
+        '<div class="gc-sub">' + history.length + ' sesion' + (history.length === 1 ? '' : 'es') + ' registrada' + (history.length === 1 ? '' : 's') + '</div>' +
+      '</div>' +
+      '<div class="gc-body">' +
+        (focus ? '<div class="gc-focus-banner">Bloque a priorizar: <b>' + focus.name + '</b> (promedio ' + focus.avg.toFixed(1) + '/5 en las ultimas practicas)</div>' : '') +
+        (history.length ? '<div class="gc-card"><div class="gc-eyebrow" style="color:var(--green)">Resultado promedio por sesion</div>' + chart + '</div>' : '') +
+        '<div class="gc-card">' +
+          (history.length === 0 ? '<div class="gc-empty">Todavia no hay sesiones guardadas.</div>' :
+            history.slice().reverse().map((s) => {
+              const st = computeStats(s);
+              const d = new Date(s.date);
+              return '<div class="gc-hist-row"><span>' + d.toLocaleDateString('es-AR') + '</span><span class="gc-mono">' + st.avgResultado.toFixed(1) + '/5 \u00b7 TB ' + Math.round(st.pctThink * 100) + '%</span></div>';
+            }).join('')) +
+        '</div>' +
+        (history.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-var-btn">Exportar esta variante a CSV</button>' : '') +
+      '</div>';
+
+    document.getElementById('gc-back-btn').onclick = () => { state.screen = 'home'; render(); };
+    const exportVarBtn = document.getElementById('gc-export-var-btn');
+    if (exportVarBtn) exportVarBtn.onclick = () => exportCSV(variant);
+  }
+
+  // ---------- Init ----------
+  (async function init() {
+    state.loading = false;
+    render();
+  })();
+})();
+</script>
+
+</body>
+</html>
