@@ -28,6 +28,17 @@ function buildSituational(situations) {
   return arr;
 }
 
+function buildAlternatingSituations(situations, total) {
+  // Como buildSituational, pero interleaving las situaciones (1,2,3,4,1,2,3,4,...)
+  // en vez de agruparlas en bloques consecutivos. situations: [ [objetivo, club, target], ... ]
+  const arr = [];
+  for (let i = 0; i < total; i++) {
+    const [objetivo, club, target] = situations[i % situations.length];
+    arr.push({ objetivo, club, target, trackDistance: false, thinkBox: false, playBox: false, resultado: null, distancia: null });
+  }
+  return arr;
+}
+
 // ---------- Variant A: Approach corto <120 yds ----------
 function freshVariantA() {
   return {
@@ -61,11 +72,19 @@ function freshVariantC() {
   return {
     key: 'C', type: 'shots', name: 'Precision hierros largos (150-185 yds)',
     blocks: [
-      { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(4, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-') },
+      { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: [
+        ...buildShots(6, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-'),
+        ...buildShots(6, 'Foco en soltar el swing', 'Driver', '-'),
+      ] },
       { name: 'Precision 150-185', shortLabel: 'Precision', shots: buildAlternating(
-        [['7 Hierro', '150-160 yds'], ['6 Hierro', '160-170 yds'], ['5 Hierro', '175-185 yds']], 16, 'Blanco especifico, control de distancia', true) },
-      { name: 'Simulacion de presion', shortLabel: 'Presion', shots: buildShots(8, 'Rutina completa, blanco variable', '5H / 6H / 7H', 'Blanco variable') },
-      { name: 'Cierre con proposito', shortLabel: 'Cierre', shots: buildShots(4, 'Palo de confianza, cerrar en positivo', 'PW / SW', '<120 yds') },
+        [['7 Hierro', '150-160 yds'], ['6 Hierro', '160-170 yds'], ['5 Hierro', '175-185 yds']], 18, 'Blanco especifico, control de distancia', true) },
+      { name: 'Recuperacion con hierros', shortLabel: 'Recuperacion', shots: buildAlternatingSituations([
+        ['Rough / pelota tapada - salir bajo y limpio', 'Hibrido 3 / H5', 'Bajo y limpio'],
+        ['Obstaculo adelante', 'H7', 'Fade / Draw'],
+        ['Lie incomodo (pendiente)', 'Hierro medio', 'Contacto solido'],
+        ['Layup inteligente (conservador)', 'H 8/9', 'Centro blanco'],
+      ], 12) },
+      { name: 'Cierre con proposito', shortLabel: 'Cierre', shots: buildShots(8, 'Palo de confianza, cerrar en positivo', 'PW / SW', '<120 yds') },
     ],
   };
 }
@@ -104,7 +123,7 @@ function freshVariantD() {
 export const VARIANT_DEFS = {
   A: { label: 'Variante A — Approach corto', desc: '50 tiros · <120 yds', factory: freshVariantA },
   B: { label: 'Variante B — Distancia media', desc: '50 tiros · 120-150 yds', factory: freshVariantB },
-  C: { label: 'Variante C — Precision hierros largos', desc: '32 tiros · 150-185 yds', factory: freshVariantC },
+  C: { label: 'Variante C — Precision hierros largos', desc: '50 tiros · 150-185 yds', factory: freshVariantC },
   D: { label: 'Variante D — Putting semanal', desc: '4 bloques · green real', factory: freshVariantD },
   E: { label: 'Variante E — Drive y recuperacion', desc: '50 tiros · fairway + plan B', factory: freshVariantE },
 };
