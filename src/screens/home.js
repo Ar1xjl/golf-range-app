@@ -1,11 +1,14 @@
 // Pantalla de inicio: elegir variante, ver ultima sesion, foco sugerido,
-// entrar al historial o exportar todo a CSV. Portado desde el prototipo.
+// continuar una sesion sin terminar, o entrar al historial. Exportar CSV
+// y Acerca de viven en el menu (icono hamburguesa).
+
+import { sessionProgressLabel, firstIncompleteFlatIndex } from '../variants.js';
 
 export async function renderHome(ctx) {
-  const { APP, state, render, db, computeStats, suggestFocus, exportCSV, VARIANT_DEFS, VARIANT_ORDER } = ctx;
+  const { APP, state, render, db, computeStats, suggestFocus, VARIANT_DEFS, VARIANT_ORDER } = ctx;
   const sel = state.selectedVariant;
   const sessions = await db.loadAllForVariant(sel);
-  const fullSessions = await db.getAllSessions();
+  const unfinished = await db.getUnfinishedSessionForVariant(sel);
   const focus = suggestFocus(sessions);
   const last = sessions[sessions.length - 1];
   const lastStats = last ? computeStats(last) : null;
@@ -33,6 +36,11 @@ export async function renderHome(ctx) {
       '</div>';
   }).join('');
 
+  const startAreaHtml = unfinished
+    ? '<button class="gc-btn gc-btn-primary" id="gc-continue-btn" style="margin-top:6px;">Continuar sesion (' + sessionProgressLabel(unfinished) + ')</button>' +
+      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-start-new-btn" style="margin-top:8px;">Empezar una sesion nueva</button>'
+    : '<button class="gc-btn gc-btn-primary" id="gc-start-btn" style="margin-top:6px;">Empezar sesion</button>';
+
   const preRoundHtml =
     '<div class="gc-card">' +
       '<div class="gc-eyebrow" style="color:var(--green)">Antes de jugar</div>' +
@@ -46,6 +54,7 @@ export async function renderHome(ctx) {
 
   APP.innerHTML =
     '<div class="gc-header">' +
+      '<button class="gc-menu-btn" id="gc-menu-btn" aria-label="Menu">☰</button>' +
       '<div class="gc-eyebrow">Practica de golf · Juan</div>' +
       '<h1 class="gc-title">GolfSaber</h1>' +
       '<div class="gc-sub">Elegi una variante y entrena con proposito.</div>' +
@@ -55,15 +64,12 @@ export async function renderHome(ctx) {
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
         pillsHtml +
-        '<button class="gc-btn gc-btn-primary" id="gc-start-btn" style="margin-top:6px;">Empezar sesion</button>' +
+        startAreaHtml +
       '</div>' +
       (sessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + sessions.length + ')</button>' : '') +
-      (fullSessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-btn" style="margin-top:10px;">Exportar todo a CSV</button>' : '') +
-      '<div style="text-align:center; margin-top:22px;">' +
-        '<button class="gc-nav-back" id="gc-about-btn" style="color:var(--ink-soft); margin-bottom:0;">Acerca de esta app</button>' +
-      '</div>' +
     '</div>';
 
+  document.getElementById('gc-menu-btn').onclick = () => { state.screen = 'menu'; render(); };
   document.getElementById('gc-warmup-entry').onclick = () => { state.screen = 'warmup-select'; render(); };
   document.getElementById('gc-tempo-entry').onclick = () => { state.returnScreen = 'home'; state.screen = 'tempo'; render(); };
 
@@ -73,7 +79,7 @@ export async function renderHome(ctx) {
   document.querySelectorAll('.gc-variant-pill[data-variant]').forEach((el) => {
     el.onclick = () => { state.selectedVariant = el.dataset.variant; render(); };
   });
-  document.getElementById('gc-start-btn').onclick = async () => {
+  async function startNewSession() {
     const factory = VARIANT_DEFS[state.selectedVariant].factory;
     state.session = factory();
     state.session.id = Date.now();
@@ -84,10 +90,19 @@ export async function renderHome(ctx) {
     state.confirmingCancel = false;
     state.screen = 'session';
     render();
-  };
+  }
+  if (unfinished) {
+    document.getElementById('gc-continue-btn').onclick = () => {
+      state.session = unfinished;
+      state.currentFlatIndex = unfinished.type === 'blocks' ? 0 : firstIncompleteFlatIndex(unfinished);
+      state.confirmingCancel = false;
+      state.screen = 'session';
+      render();
+    };
+    document.getElementById('gc-start-new-btn').onclick = startNewSession;
+  } else {
+    document.getElementById('gc-start-btn').onclick = startNewSession;
+  }
   const histBtn = document.getElementById('gc-hist-btn');
   if (histBtn) histBtn.onclick = () => { state.screen = 'history'; render(); };
-  const exportBtn = document.getElementById('gc-export-btn');
-  if (exportBtn) exportBtn.onclick = () => exportCSV(null);
-  document.getElementById('gc-about-btn').onclick = () => { state.screen = 'about'; render(); };
 }

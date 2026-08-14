@@ -1,6 +1,7 @@
 // Pantalla de sesion por bloque (variante D: putting semanal). Portado desde el prototipo.
 
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
+import { ensureSessionWakeLock } from '../sessionWakeLock.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -8,6 +9,7 @@ function seaBanner(session) {
 
 export function renderBlockSession(ctx) {
   const { APP, state, render, persistCurrentSession, finishSession } = ctx;
+  ensureSessionWakeLock();
   const session = state.session;
   const cardsHtml = session.blocks.map((b, bi) => {
     const segRow = (field, current) => '<div class="gc-seg-row" data-field="' + field + '" data-block="' + bi + '">' +
@@ -35,7 +37,8 @@ export function renderBlockSession(ctx) {
     '<div class="gc-body" style="padding-top:16px;">' +
       cardsHtml +
       '<button class="gc-btn gc-btn-primary" id="gc-finish-d-btn">Finalizar sesion</button>' +
-      '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      '<button class="gc-btn gc-btn-ghost" id="gc-session-tempo-btn" style="margin-top:8px;">🎧 Tempo Trainer</button>' +
+      '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Pausar y salir</button>' +
       cancelRowHtml(state) +
     '</div>';
 
@@ -67,6 +70,11 @@ export function renderBlockSession(ctx) {
     });
   });
   document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
+  document.getElementById('gc-session-tempo-btn').onclick = () => {
+    state.returnScreen = 'session';
+    state.screen = 'tempo';
+    render();
+  };
   document.getElementById('gc-exit-d-btn').onclick = async () => {
     await persistCurrentSession(false);
     state.confirmingCancel = false;

@@ -36,6 +36,11 @@ export const TEMPO_LABELS = {
   'pro-slow': 'Pro Lento', 'pro-medium': 'Pro Medio', 'pro-fast': 'Pro Rapido',
 };
 
+// Standalone (no hace falta una instancia del motor) - lo usan tanto
+// player.js como la pantalla completa para mostrar el detalle en segundos
+// del preset sin necesidad de haber arrancado el audio todavia.
+export function getTempoPreset(tempoKey) { return TEMPOS[tempoKey] || TEMPOS['pro-medium']; }
+
 function makeDistortionCurve(amount) {
   const n = 44100;
   const curve = new Float32Array(n);

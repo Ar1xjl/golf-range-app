@@ -33,8 +33,12 @@ import { renderSummary } from './screens/summary.js';
 import { renderHistory } from './screens/history.js';
 import { renderWarmupSelect } from './screens/warmupSelect.js';
 import { renderWarmupSession, renderWarmupDone, cleanupWarmupTicking } from './screens/warmupSession.js';
-import { renderTempo, cleanupTempo } from './screens/tempo.js';
+import { renderTempo, cleanupTempoScreen } from './screens/tempo.js';
 import { renderAbout } from './screens/about.js';
+import { renderMenu } from './screens/menu.js';
+import { renderReports } from './screens/reports.js';
+import { releaseSessionWakeLock } from './sessionWakeLock.js';
+import { initPlayer } from './tempo/player.js';
 
 const APP = document.getElementById('gc-app');
 
@@ -60,15 +64,21 @@ const ctx = {
   VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, finishSession,
 };
 
-// Algunas pantallas (Tempo Trainer, el timer del warm-up) dejan cosas
-// corriendo en segundo plano (AudioContext, setInterval) que no se limpian
-// solas cuando se navega afuera con innerHTML - el resto de las pantallas no
-// necesita esto porque no tienen nada vivo entre renders. Antes de despachar
-// a la pantalla nueva, si la pantalla anterior tenia un cleanup registrado
-// y estamos dejandola, se ejecuta.
+// Algunas pantallas (el timer del warm-up, la sesion de practica) dejan
+// cosas corriendo en segundo plano (setInterval, wake lock) que no se
+// limpian solas cuando se navega afuera con innerHTML - el resto de las
+// pantallas no necesita esto porque no tienen nada vivo entre renders.
+// Antes de despachar a la pantalla nueva, si la pantalla anterior tenia un
+// cleanup registrado y estamos dejandola, se ejecuta.
+//
+// El Tempo Trainer es la excepcion a proposito: cleanupTempoScreen() solo
+// para la animacion de la barra (rafId, local a esa pantalla) - el audio en
+// si (src/tempo/player.js) sigue sonando al navegar, con su propio
+// mini-reproductor (#gc-mini-player) para pararlo desde cualquier lado.
 const SCREEN_CLEANUP = {
-  tempo: cleanupTempo,
+  tempo: cleanupTempoScreen,
   'warmup-session': cleanupWarmupTicking,
+  session: releaseSessionWakeLock,
 };
 let previousScreen = null;
 
@@ -78,6 +88,9 @@ function render() {
     if (cleanup) cleanup();
   }
   previousScreen = state.screen;
+  // El mini-reproductor se oculta via CSS mientras la pantalla completa del
+  // Tempo Trainer ya esta mostrando esos mismos controles.
+  document.body.classList.toggle('gc-on-tempo-screen', state.screen === 'tempo');
 
   if (state.loading) { APP.innerHTML = '<div class="gc-empty">Cargando...</div>'; return; }
   if (state.screen === 'home') return renderHome(ctx);
@@ -91,11 +104,25 @@ function render() {
   if (state.screen === 'warmup-done') return renderWarmupDone(ctx);
   if (state.screen === 'tempo') return renderTempo(ctx);
   if (state.screen === 'about') return renderAbout(ctx);
+  if (state.screen === 'menu') return renderMenu(ctx);
+  if (state.screen === 'reports') return renderReports(ctx);
 }
 
 // ---------- Init ----------
 state.loading = false;
 render();
+
+// El mini-reproductor vive fuera de #gc-app (ver index.html) para
+// sobrevivir a los re-render que reemplazan innerHTML en cada cambio de
+// pantalla. initPlayer() carga las preferencias guardadas y registra como
+// volver a la pantalla completa cuando se toca el mini-reproductor.
+initPlayer(db, {
+  onOpenFull: () => {
+    state.returnScreen = state.screen;
+    state.screen = 'tempo';
+    render();
+  },
+});
 
 // ---------- Service worker (offline) ----------
 // autoUpdate: revisa updates en segundo plano y activa la version nueva sola

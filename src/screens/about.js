@@ -1,5 +1,4 @@
-// Pantalla "Acerca de": que es la app y credito. Acceso desde un link
-// discreto al pie del home.
+// Pantalla "Acerca de": que es la app y credito. Acceso desde el menu.
 
 export function renderAbout(ctx) {
   const { APP, state, render } = ctx;
@@ -48,5 +47,5 @@ export function renderAbout(ctx) {
       '</div>' +
     '</div>';
 
-  document.getElementById('gc-back-btn').onclick = () => { state.screen = 'home'; render(); };
+  document.getElementById('gc-back-btn').onclick = () => { state.screen = 'menu'; render(); };
 }

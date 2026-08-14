@@ -34,6 +34,56 @@ export function computeStats(session) {
   return { total, pctThink: total ? think / total : 0, pctPlay: total ? play / total : 0, avgResultado: avg, byBlock };
 }
 
+// Semana calendario (lunes) como timestamp, para calcular la racha.
+function weekStart(date) {
+  const d = new Date(date);
+  const day = (d.getDay() + 6) % 7; // lunes = 0
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// Semanas seguidas (incluyendo la actual) con al menos una sesion.
+function computeWeekStreak(dates) {
+  if (!dates.length) return 0;
+  const weeks = new Set(dates.map(weekStart));
+  let streak = 0;
+  let cursor = weekStart(new Date());
+  while (weeks.has(cursor)) {
+    streak++;
+    cursor -= 7 * 86400000;
+  }
+  return streak;
+}
+
+// Resumen global para la pantalla de Reportes: junta TODAS las sesiones
+// finalizadas (todas las variantes) en una sola foto. `sessions` debe venir
+// ya filtrado a finished:true - una sesion a medias no deberia contar en
+// ningun promedio.
+export function computeGlobalReport(sessions) {
+  const sorted = sessions.slice().sort((a, b) => a.id - b.id);
+  let totalItems = 0, weightedThink = 0, weightedPlay = 0;
+  const trend = [];
+  sorted.forEach((s) => {
+    const st = computeStats(s);
+    totalItems += st.total;
+    weightedThink += st.pctThink * st.total;
+    weightedPlay += st.pctPlay * st.total;
+    trend.push(st.avgResultado);
+  });
+  const lastDate = sorted.length ? new Date(sorted[sorted.length - 1].date) : null;
+  const daysSinceLast = lastDate ? Math.floor((Date.now() - lastDate.getTime()) / 86400000) : null;
+  return {
+    totalSessions: sorted.length,
+    totalItems,
+    pctThink: totalItems ? weightedThink / totalItems : 0,
+    pctPlay: totalItems ? weightedPlay / totalItems : 0,
+    daysSinceLast,
+    streakWeeks: computeWeekStreak(sorted.map((s) => new Date(s.date))),
+    trend,
+  };
+}
+
 export function suggestFocus(history) {
   if (!history.length) return null;
   const last3 = history.slice(-3);

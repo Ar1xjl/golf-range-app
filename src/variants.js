@@ -135,3 +135,24 @@ export function flatten(session) {
   session.blocks.forEach((b, bi) => b.shots.forEach((s, si) => flat.push({ blockIndex: bi, blockName: b.name, shotIndex: si, ...s })));
   return flat;
 }
+
+// "3/24 tiros" o "2/4 bloques" - usado tanto en el Historial (fila "En
+// progreso") como en el home ("Continuar sesion").
+export function sessionProgressLabel(session) {
+  if (session.type === 'blocks') {
+    const done = session.blocks.filter((b) => b.resultado != null).length;
+    return done + '/' + session.blocks.length + ' bloques';
+  }
+  const flat = flatten(session);
+  const done = flat.filter((s) => s.resultado != null).length;
+  return done + '/' + flat.length + ' tiros';
+}
+
+// Indice (en flatten()) del primer tiro sin responder, para saltar ahi al
+// retomar una sesion tiro-a-tiro sin terminar. Si esta todo respondido
+// (no deberia pasar en una sesion sin terminar), cae al ultimo tiro.
+export function firstIncompleteFlatIndex(session) {
+  const flat = flatten(session);
+  const idx = flat.findIndex((s) => s.resultado == null);
+  return idx === -1 ? Math.max(0, flat.length - 1) : idx;
+}

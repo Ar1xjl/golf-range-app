@@ -2,6 +2,7 @@
 
 import { flatten } from '../variants.js';
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
+import { ensureSessionWakeLock } from '../sessionWakeLock.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -22,6 +23,7 @@ function syncShot(session, shot) {
 
 export function renderShotSession(ctx) {
   const { APP, state, render, persistCurrentSession, finishSession } = ctx;
+  ensureSessionWakeLock();
   const flat = flatten(state.session);
   const i = state.currentFlatIndex;
   const shot = flat[i];
@@ -67,7 +69,8 @@ export function renderShotSession(ctx) {
         '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-prev-btn" ' + (i === 0 ? 'disabled' : '') + '>Anterior</button>' +
         '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-next-btn">' + (i === flat.length - 1 ? 'Finalizar' : 'Siguiente') + '</button>' +
       '</div>' +
-      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-session-tempo-btn" style="margin-top:8px;">🎧 Tempo Trainer</button>' +
+      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Pausar y salir</button>' +
       cancelRowHtml(state) +
     '</div>';
 
@@ -88,6 +91,11 @@ export function renderShotSession(ctx) {
   document.getElementById('gc-prev-btn').onclick = () => { if (i > 0) { state.currentFlatIndex--; render(); } };
   document.getElementById('gc-next-btn').onclick = async () => {
     if (i === flat.length - 1) { await finishSession(); } else { state.currentFlatIndex++; render(); }
+  };
+  document.getElementById('gc-session-tempo-btn').onclick = () => {
+    state.returnScreen = 'session';
+    state.screen = 'tempo';
+    render();
   };
   document.getElementById('gc-exit-btn').onclick = async () => {
     await persistCurrentSession(false);

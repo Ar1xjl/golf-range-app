@@ -48,38 +48,72 @@ prep pre-ronda: no tienen Think Box/Play Box/resultado).
   (bus de 4 delays en paralelo, sin archivo de impulso) y contraste dinamico
   ajustables, colapsados bajo "Ajustes de sonido" para no ocupar la pantalla
   inicial. Cada motor recuerda su propio grave/agudo/reverb/dinamica.
-  Preferencias persistidas en el store `settings`. Acceso desde el home y
-  desde el bloque final del Warm-up.
+  Preferencias persistidas en el store `settings`. Acceso desde el home,
+  desde el bloque final del Warm-up, y desde dentro de una sesion de
+  practica (para escucharlo mientras registras tiros).
   Reverb, dinamica y el motor Relax se disenaron primero en un artifact
   aparte ("Tempo Sound Lab") antes de llevarlos a la app.
+- **Mini-reproductor**: el Tempo Trainer sigue sonando al navegar a otra
+  pantalla (por ejemplo, volver a la sesion de practica) - una franja fija
+  abajo (`#gc-mini-player` en `index.html`, fuera de `#gc-app` para
+  sobrevivir a los re-render) muestra el preset activo y un boton de
+  Detener desde cualquier lado. Se esconde sola en la pantalla completa del
+  Tempo Trainer (los controles ya estan ahi).
 
 Detalles de arquitectura no obvios:
-- `src/tempo/engine.js` es una factory (`createTempoEngine`) con
-  `dispose()` explicito: a diferencia del prototipo (pagina estatica), esta
-  app intercambia pantallas sin recargar, asi que el AudioContext y el
-  `setTimeout` que encadena ciclos necesitan un cierre manual o quedan
-  sonando en segundo plano para siempre.
-- `screens/tempo.js` es la unica pantalla que NO hace un re-render completo
-  en cada interaccion (el resto de la app reconstruye todo el innerHTML en
+- `src/tempo/player.js` es el motor + preferencias + wake lock como
+  singleton global (sobrevive a la navegacion entre pantallas, a proposito,
+  para el mini-reproductor). `src/tempo/engine.js` (el motor de audio en
+  si, factory `createTempoEngine` con `dispose()` explicito) no cambio -
+  player.js es la capa que decide CUANDO crearlo/destruirlo. Antes esa
+  decision vivia en `screens/tempo.js` y se disparaba con cada navegacion;
+  ahora solo se destruye cuando el usuario toca "Detener" (desde la
+  pantalla completa o el mini-reproductor), nunca por navegar.
+- `screens/tempo.js` (la pantalla completa) es una "vista" sobre player.js
+  y sigue siendo la unica pantalla que NO hace un re-render completo en
+  cada interaccion (el resto de la app reconstruye todo el innerHTML en
   cada cambio) - el marcador anima via `requestAnimationFrame` en paralelo
   al audio, y reconstruir el DOM del track en cada click cortaria esa
   animacion. Actualiza el DOM de forma imperativa, igual que el prototipo.
 - `main.js` tiene un mecanismo generico de cleanup-al-navegar-afuera
   (`SCREEN_CLEANUP`) para las pantallas que dejan algo vivo entre renders
-  (el motor de audio, el timer del warm-up).
+  (el timer del warm-up, el wake lock de la sesion). El Tempo Trainer es la
+  excepcion: su cleanup al salir de la pantalla completa solo para la
+  animacion local (rafId), no el audio - eso es justo el punto del
+  mini-reproductor.
 
 ## Otras piezas
 
+- **Retomar sesion**: "Guardar y salir" paso a llamarse "Pausar y salir" -
+  ahora es literal: si la variante seleccionada tiene una sesion sin
+  terminar, el home ofrece "Continuar sesion (progreso)" en vez de
+  "Empezar sesion" (salta al primer tiro sin responder via
+  `firstIncompleteFlatIndex` en `variants.js`), con "Empezar una sesion
+  nueva" como opcion secundaria.
 - **Cancelar sesion**: en las 3 pantallas de sesion (tiro-a-tiro, bloques,
   warm-up) hay un boton "Cancelar sesion" (`src/confirmDiscard.js`, dos
   pasos de confirmacion) que descarta sin escribir nada en IndexedDB -
-  distinto de "Guardar y salir", que persiste como `finished:false`.
+  distinto de "Pausar y salir", que persiste como `finished:false` (y ahora
+  se puede retomar).
+- **Wake Lock**: la pantalla no se apaga sola durante una sesion de
+  practica, un warm-up, o mientras suena el Tempo Trainer
+  (`src/wakeLock.js`, factory `createWakeLockHandle()` - cada feature tiene
+  su propio sentinel independiente a proposito, para que liberar uno no
+  apague el de otro si estan activos al mismo tiempo).
 - **Historial con borrado**: `screens/history.js` muestra tambien las
   sesiones sin terminar (antes invisibles, solo rescatables via CSV) con
   tag "En progreso" y boton borrar (confirmacion en dos pasos,
   `db.deleteSession`). El grafico de tendencia y el foco sugerido siguen
   usando solo las sesiones finalizadas.
-- **Acerca de**: `screens/about.js`, accesible desde un link al pie del home.
+- **Menu**: icono ☰ arriba a la derecha del home (`screens/menu.js`) con
+  Reportes, Exportar a CSV y Acerca de - antes sueltos en el home.
+- **Reportes**: `screens/reports.js` + `computeGlobalReport()` en
+  `stats.js` - resumen de TODA la practica (todas las variantes juntas):
+  sesiones totales, tiros/putts, racha de semanas seguidas, dias desde la
+  ultima, Think/Play Box global (promedio ponderado por tamaño de sesion,
+  no promedio simple de porcentajes), tendencia de resultado promedio, y
+  un resumen por variante. Complementa al Historial (que sigue siendo el
+  detalle sesion-por-sesion de UNA variante), no lo reemplaza.
 - **Safe area**: `.gc-header` y `.gc-sea-banner` usan
   `env(safe-area-inset-top)` (Dynamic Island/notch) y el body
   `env(safe-area-inset-bottom)` (home indicator) - necesario corriendo como
@@ -117,12 +151,15 @@ src/
   csv.js                 # export a CSV
   db.js                   # capa de persistencia (IndexedDB)
   confirmDiscard.js        # boton "Cancelar sesion" compartido (2 pasos)
+  wakeLock.js               # factory de wake lock (sentinels independientes)
+  sessionWakeLock.js         # wake lock de las pantallas de sesion
   styles.css
   tempo/
     engine.js            # motor de audio del Tempo Trainer (Web Audio API)
+    player.js             # motor+prefs+wakelock como singleton global (mini-reproductor)
   screens/
     home.js, sessionShots.js, sessionBlocks.js, summary.js, history.js,
-    warmupSelect.js, warmupSession.js, tempo.js, about.js
+    warmupSelect.js, warmupSession.js, tempo.js, about.js, menu.js, reports.js
 scripts/
   generate-icons.mjs    # genera los PNG del icono desde src/icon.svg
 public/icons/           # iconos PWA generados (no editar a mano)

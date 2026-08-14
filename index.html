@@ -16,6 +16,10 @@
 </head>
 <body style="margin:0;">
 <div id="gc-app"></div>
+<!-- Fuera de #gc-app a proposito: sobrevive a los re-render de pantalla
+     (que reemplazan #gc-app.innerHTML por completo) para que el Tempo
+     Trainer pueda seguir sonando y controlable desde cualquier pantalla. -->
+<div id="gc-mini-player"></div>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

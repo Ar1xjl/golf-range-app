@@ -4,22 +4,12 @@
 // El grafico de tendencia y el foco sugerido siguen usando solo las
 // finalizadas - una sesion a medias no deberia mover ese promedio.
 
-import { flatten } from '../variants.js';
+import { sessionProgressLabel } from '../variants.js';
 
 // Solo puede haber una fila "confirmando borrado" a la vez. Vive fuera de
 // `state` porque es puramente UI efimera de esta pantalla, no algo que
 // otras pantallas necesiten leer.
 let confirmingDeleteId = null;
-
-function progressLabel(session) {
-  if (session.type === 'blocks') {
-    const done = session.blocks.filter((b) => b.resultado != null).length;
-    return done + '/' + session.blocks.length + ' bloques';
-  }
-  const flat = flatten(session);
-  const done = flat.filter((s) => s.resultado != null).length;
-  return done + '/' + flat.length + ' tiros';
-}
 
 export async function renderHistory(ctx) {
   const { APP, state, render, db, computeStats, suggestFocus, exportCSV } = ctx;
@@ -63,7 +53,7 @@ export async function renderHistory(ctx) {
       const statusTag = s.finished ? '' : '<span class="gc-status-tag">En progreso</span>';
       const rightText = s.finished
         ? computeStats(s).avgResultado.toFixed(1) + '/5 · TB ' + Math.round(computeStats(s).pctThink * 100) + '%'
-        : progressLabel(s);
+        : sessionProgressLabel(s);
       return '<div class="gc-hist-entry">' +
         '<div class="gc-hist-row"><span>' + d.toLocaleDateString('es-AR') + statusTag + '</span><span class="gc-mono">' + rightText + '</span></div>' +
         deleteControlHtml(s.id) +

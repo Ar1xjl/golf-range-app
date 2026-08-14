@@ -77,6 +77,15 @@ export async function deleteSession(id) {
   await db.delete(STORE_SESSIONS, id);
 }
 
+// La sesion sin terminar mas reciente de la variante (para "Continuar
+// sesion" en el home), o null si no hay ninguna.
+export async function getUnfinishedSessionForVariant(variantKey) {
+  const db = await dbPromise;
+  const all = await db.getAllFromIndex(STORE_SESSIONS, 'variant', variantKey);
+  const unfinished = all.filter((s) => !s.finished).sort((a, b) => b.id - a.id);
+  return unfinished[0] || null;
+}
+
 // ---------- Warm-ups pre-ronda ----------
 
 export async function saveWarmup(warmup) {

@@ -32,6 +32,16 @@
 
 body { background: var(--bg, #F5F1E4); }
 
+/* Espacio para que el mini-reproductor (fijo abajo) no tape el ultimo
+   boton de la pantalla cuando esta visible (pero no en la pantalla
+   completa del Tempo Trainer, donde el mini-reproductor esta oculto). */
+body.has-mini-player:not(.gc-on-tempo-screen) #gc-app {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+/* En la pantalla completa del Tempo Trainer los mismos controles ya estan
+   a la vista - el mini-reproductor se esconde para no duplicarlos. */
+body.gc-on-tempo-screen #gc-mini-player { display: none; }
+
 #gc-app .gc-mono { font-family: 'IBM Plex Mono', monospace; }
 #gc-app .gc-display { font-family: 'Fraunces', serif; }
 
@@ -40,6 +50,13 @@ body { background: var(--bg, #F5F1E4); }
   color: var(--bg);
   padding: calc(22px + env(safe-area-inset-top)) 20px 18px;
   border-radius: 0 0 18px 18px;
+  position: relative;
+}
+#gc-app .gc-menu-btn {
+  position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 18px;
+  background: none; border: none; color: var(--gold); font-size: 22px;
+  line-height: 1; padding: 4px 6px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 #gc-app .gc-eyebrow {
   font-family: 'IBM Plex Mono', monospace;
@@ -363,3 +380,40 @@ body { background: var(--bg, #F5F1E4); }
   border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 14px; background: #fff;
 }
 #gc-app .tt-settings-body .tt-sub-card:first-child { margin-top: 14px; }
+
+/* ---------- Mini-reproductor del Tempo Trainer ---------- */
+/* Vive fuera de #gc-app (ver index.html), asi que no hereda sus variables
+   de color - se repiten los tonos del paladar aca a proposito. */
+#gc-mini-player {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; justify-content: center; pointer-events: none;
+  padding: 0 16px calc(14px + env(safe-area-inset-bottom));
+}
+.gc-mini-player-inner {
+  pointer-events: auto;
+  width: 100%; max-width: 448px;
+  display: flex; align-items: center; gap: 10px;
+  background: #1D2E1F; color: #F5F1E4;
+  border-radius: 999px; padding: 12px 8px 12px 18px;
+  box-shadow: 0 6px 20px rgba(29, 46, 31, 0.35);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.gc-mini-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #C79A3E; flex-shrink: 0;
+  animation: gc-mini-pulse 1.6s ease-in-out infinite;
+}
+.gc-mini-label {
+  flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gc-mini-stop {
+  flex-shrink: 0; border: none; border-radius: 999px; padding: 9px 14px;
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700;
+  background: #A94B41; color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+@keyframes gc-mini-pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gc-mini-dot { animation: none; }
+}

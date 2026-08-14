@@ -3,18 +3,22 @@
 
 import { WARMUP_PLANS } from '../warmup.js';
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
+import { createWakeLockHandle } from '../wakeLock.js';
 
 // El timer re-renderiza toda la pantalla cada segundo (mismo patron de
 // re-render completo que el resto de la app). Singleton de modulo porque
 // solo puede haber una pantalla de warm-up activa a la vez - cleanupTicking()
 // lo para cuando se navega afuera de esta pantalla (registrado en main.js).
 let tickIntervalId = null;
+const wakeLock = createWakeLockHandle();
 function ensureTicking(render) {
   if (tickIntervalId) return;
   tickIntervalId = setInterval(render, 1000);
+  wakeLock.request();
 }
 export function cleanupWarmupTicking() {
   if (tickIntervalId) { clearInterval(tickIntervalId); tickIntervalId = null; }
+  wakeLock.release();
 }
 
 function formatMMSS(totalSeconds) {
