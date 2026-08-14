@@ -240,3 +240,67 @@ body { background: var(--bg, #F5F1E4); }
   margin-bottom: 14px; font-size: 13px; line-height: 1.5;
 }
 #gc-app .gc-focus-banner b { color: var(--gold); }
+
+/* ---------- Warm-up: timer del bloque activo ---------- */
+#gc-app .gc-timer {
+  font-family: 'IBM Plex Mono', monospace; font-size: 40px; font-weight: 600;
+  color: var(--green-deep); margin: 14px 0 4px;
+}
+#gc-app .gc-timer.done { color: var(--gold); }
+
+/* ---------- Tempo Trainer ---------- */
+/* Portado del prototipo standalone (tempo_trainer_doppler_prototipo.html),
+   clases .tt-* tal cual, solo re-escopeadas bajo #gc-app en vez de #tt-app. */
+#gc-app .tt-seg { display: flex; gap: 8px; margin-top: 10px; }
+#gc-app .tt-seg-btn {
+  flex: 1; text-align: center; padding: 12px 6px; border-radius: 10px;
+  border: 1.5px solid var(--line); font-weight: 600; font-size: 13px;
+  cursor: pointer; background: #fff; color: var(--ink);
+}
+#gc-app .tt-seg-btn.sel { background: var(--green); color: #fff; border-color: var(--green); }
+
+#gc-app .tt-play-btn {
+  display: block; width: 100%; border: none; border-radius: 14px; padding: 20px;
+  font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer;
+  background: var(--green); color: #fff; margin-top: 16px;
+}
+#gc-app .tt-play-btn.playing { background: var(--brick); }
+
+#gc-app .tt-track {
+  position: relative; height: 46px; background: #EEF3EA; border-radius: 10px;
+  margin-top: 18px; overflow: hidden; border: 1px solid var(--line);
+}
+#gc-app .tt-track-zone { position: absolute; top:0; bottom:0; }
+#gc-app .tt-zone-back { left: 0; background: rgba(47,82,51,0.10); }
+#gc-app .tt-zone-down { background: rgba(199,154,62,0.22); }
+#gc-app .tt-marker {
+  position: absolute; top: 6px; width: 6px; height: 34px; border-radius: 3px;
+  background: var(--green-deep);
+}
+#gc-app .tt-labels { display:flex; justify-content: space-between; font-family:'IBM Plex Mono',monospace; font-size: 10.5px; color: var(--ink-soft); margin-top: 6px; }
+
+#gc-app .tt-note { font-size: 12px; color: var(--ink-soft); margin-top: 14px; line-height: 1.5; }
+
+#gc-app .tt-slider-row { margin-top: 14px; }
+#gc-app .tt-slider-label {
+  display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 4px;
+}
+#gc-app .tt-slider-label span.tt-val { font-family: 'IBM Plex Mono', monospace; color: var(--green); }
+#gc-app input[type="range"] { width: 100%; accent-color: var(--green); }
+
+#gc-app .tt-switch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff;
+}
+#gc-app .tt-switch-label { font-size: 13.5px; font-weight: 600; }
+#gc-app .tt-switch-hint { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+#gc-app .tt-switch {
+  position: relative; width: 46px; height: 26px; border-radius: 999px; background: var(--line);
+  cursor: pointer; flex-shrink: 0; margin-left: 12px;
+}
+#gc-app .tt-switch.on { background: var(--green); }
+#gc-app .tt-switch-knob {
+  position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: left 0.15s ease;
+}
+#gc-app .tt-switch.on .tt-switch-knob { left: 23px; }

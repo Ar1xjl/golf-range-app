@@ -31,10 +31,16 @@ import { renderShotSession } from './screens/sessionShots.js';
 import { renderBlockSession } from './screens/sessionBlocks.js';
 import { renderSummary } from './screens/summary.js';
 import { renderHistory } from './screens/history.js';
+import { renderWarmupSelect } from './screens/warmupSelect.js';
+import { renderWarmupSession, renderWarmupDone, cleanupWarmupTicking } from './screens/warmupSession.js';
+import { renderTempo, cleanupTempo } from './screens/tempo.js';
 
 const APP = document.getElementById('gc-app');
 
-const state = { screen: 'home', session: null, selectedVariant: 'C', currentFlatIndex: 0, loading: true };
+const state = {
+  screen: 'home', session: null, selectedVariant: 'C', currentFlatIndex: 0, loading: true,
+  warmupSelected: '20', warmupSession: null, returnScreen: null,
+};
 
 async function persistCurrentSession(finished) {
   if (!state.session) return;
@@ -53,7 +59,25 @@ const ctx = {
   VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, finishSession,
 };
 
+// Algunas pantallas (Tempo Trainer, el timer del warm-up) dejan cosas
+// corriendo en segundo plano (AudioContext, setInterval) que no se limpian
+// solas cuando se navega afuera con innerHTML - el resto de las pantallas no
+// necesita esto porque no tienen nada vivo entre renders. Antes de despachar
+// a la pantalla nueva, si la pantalla anterior tenia un cleanup registrado
+// y estamos dejandola, se ejecuta.
+const SCREEN_CLEANUP = {
+  tempo: cleanupTempo,
+  'warmup-session': cleanupWarmupTicking,
+};
+let previousScreen = null;
+
 function render() {
+  if (previousScreen && previousScreen !== state.screen) {
+    const cleanup = SCREEN_CLEANUP[previousScreen];
+    if (cleanup) cleanup();
+  }
+  previousScreen = state.screen;
+
   if (state.loading) { APP.innerHTML = '<div class="gc-empty">Cargando...</div>'; return; }
   if (state.screen === 'home') return renderHome(ctx);
   if (state.screen === 'session') {
@@ -61,6 +85,10 @@ function render() {
   }
   if (state.screen === 'summary') return renderSummary(ctx);
   if (state.screen === 'history') return renderHistory(ctx);
+  if (state.screen === 'warmup-select') return renderWarmupSelect(ctx);
+  if (state.screen === 'warmup-session') return renderWarmupSession(ctx);
+  if (state.screen === 'warmup-done') return renderWarmupDone(ctx);
+  if (state.screen === 'tempo') return renderTempo(ctx);
 }
 
 // ---------- Init ----------

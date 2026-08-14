@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tempo Trainer - Prototipo Doppler</title>
+</head>
+<body style="margin:0;">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  #tt-app, #tt-app * { box-sizing: border-box; }
+  #tt-app {
+    --bg: #F5F1E4; --card: #FFFDF7; --ink: #20301F; --ink-soft: #5B6B57;
+    --green: #2F5233; --green-deep: #1D2E1F; --gold: #C79A3E; --line: #DCD3BC; --brick: #A94B41;
+    font-family: 'Inter', sans-serif; color: var(--ink); background: var(--bg);
+    max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 30px;
+  }
+  #tt-app .tt-header {
+    background: var(--green-deep); color: var(--bg); padding: 22px 20px 18px;
+    border-radius: 0 0 18px 18px;
+  }
+  #tt-app .tt-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--gold); margin: 0 0 4px 0;
+  }
+  #tt-app .tt-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; margin: 0; }
+  #tt-app .tt-sub { font-size: 13px; color: #C9D2C4; margin-top: 6px; line-height: 1.5; }
+  #tt-app .tt-body { padding: 18px 20px; }
+  #tt-app .tt-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+
+  #tt-app .tt-seg { display: flex; gap: 8px; margin-top: 10px; }
+  #tt-app .tt-seg-btn {
+    flex: 1; text-align: center; padding: 12px 6px; border-radius: 10px;
+    border: 1.5px solid var(--line); font-weight: 600; font-size: 13px;
+    cursor: pointer; background: #fff; color: var(--ink);
+  }
+  #tt-app .tt-seg-btn.sel { background: var(--green); color: #fff; border-color: var(--green); }
+
+  #tt-app .tt-play-btn {
+    display: block; width: 100%; border: none; border-radius: 14px; padding: 20px;
+    font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer;
+    background: var(--green); color: #fff; margin-top: 16px;
+  }
+  #tt-app .tt-play-btn.playing { background: var(--brick); }
+
+  #tt-app .tt-track {
+    position: relative; height: 46px; background: #EEF3EA; border-radius: 10px;
+    margin-top: 18px; overflow: hidden; border: 1px solid var(--line);
+  }
+  #tt-app .tt-track-zone { position: absolute; top:0; bottom:0; }
+  #tt-app .tt-zone-back { left: 0; background: rgba(47,82,51,0.10); }
+  #tt-app .tt-zone-down { background: rgba(199,154,62,0.22); }
+  #tt-app .tt-marker {
+    position: absolute; top: 6px; width: 6px; height: 34px; border-radius: 3px;
+    background: var(--green-deep);
+  }
+  #tt-app .tt-labels { display:flex; justify-content: space-between; font-family:'IBM Plex Mono',monospace; font-size: 10.5px; color: var(--ink-soft); margin-top: 6px; }
+
+  #tt-app .tt-note { font-size: 12px; color: var(--ink-soft); margin-top: 14px; line-height: 1.5; }
+  #tt-app .tt-mono { font-family: 'IBM Plex Mono', monospace; }
+
+  #tt-app .tt-slider-row { margin-top: 14px; }
+  #tt-app .tt-slider-label {
+    display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 4px;
+  }
+  #tt-app .tt-slider-label span.tt-val { font-family: 'IBM Plex Mono', monospace; color: var(--green); }
+  #tt-app input[type="range"] { width: 100%; accent-color: var(--green); }
+
+  #tt-app .tt-switch-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 16px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff;
+  }
+  #tt-app .tt-switch-label { font-size: 13.5px; font-weight: 600; }
+  #tt-app .tt-switch-hint { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  #tt-app .tt-switch {
+    position: relative; width: 46px; height: 26px; border-radius: 999px; background: var(--line);
+    cursor: pointer; flex-shrink: 0; margin-left: 12px;
+  }
+  #tt-app .tt-switch.on { background: var(--green); }
+  #tt-app .tt-switch-knob {
+    position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: left 0.15s ease;
+  }
+  #tt-app .tt-switch.on .tt-switch-knob { left: 23px; }
+</style>
+
+<div id="tt-app">
+  <div class="tt-header">
+    <div class="tt-eyebrow">Prototipo de audio</div>
+    <h1 class="tt-title">Tempo Trainer — Doppler 3:1</h1>
+    <div class="tt-sub">El tono baja durante el backswing y sube rapido hacia el impacto. Usa auriculares si podes.</div>
+  </div>
+  <div class="tt-body">
+    <div class="tt-card">
+      <div class="tt-eyebrow" style="color:var(--green)">Velocidad de swing</div>
+      <div class="tt-seg" id="tt-tempo-seg">
+        <div class="tt-seg-btn" data-tempo="lento">Lento</div>
+        <div class="tt-seg-btn sel" data-tempo="medio">Medio</div>
+        <div class="tt-seg-btn" data-tempo="rapido">Rapido</div>
+      </div>
+
+      <div class="tt-eyebrow" style="color:var(--green); margin-top:16px;">Sonido</div>
+      <div class="tt-seg" id="tt-sound-seg">
+        <div class="tt-seg-btn sel" data-sound="natural">Natural (swoosh)</div>
+        <div class="tt-seg-btn" data-sound="organ">Organo</div>
+        <div class="tt-seg-btn" data-sound="starwars">Star Wars</div>
+      </div>
+
+      <div class="tt-slider-row">
+        <div class="tt-slider-label">Tono grave (backswing) <span class="tt-val" id="tt-low-val">260 Hz</span></div>
+        <input type="range" id="tt-low-slider" min="60" max="600" value="260" step="10">
+      </div>
+      <div class="tt-slider-row">
+        <div class="tt-slider-label">Tono agudo (impacto) <span class="tt-val" id="tt-high-val">950 Hz</span></div>
+        <input type="range" id="tt-high-slider" min="400" max="2200" value="950" step="10">
+      </div>
+
+      <div class="tt-switch-row">
+        <div>
+          <div class="tt-switch-label">Tic en el impacto</div>
+          <div class="tt-switch-hint">Click seco justo en el momento del contacto</div>
+        </div>
+        <div class="tt-switch" id="tt-tick-switch"><div class="tt-switch-knob"></div></div>
+      </div>
+
+      <button class="tt-play-btn" id="tt-play-btn">Reproducir</button>
+
+      <div class="tt-track" id="tt-track">
+        <div class="tt-track-zone tt-zone-back" id="tt-zone-back"></div>
+        <div class="tt-track-zone tt-zone-down" id="tt-zone-down"></div>
+        <div class="tt-marker" id="tt-marker" style="left:0px;"></div>
+      </div>
+      <div class="tt-labels">
+        <span>Direccion</span><span>Cima</span><span>Impacto</span>
+      </div>
+
+      <div class="tt-note">
+        Proporcion 3:1 (backswing:downswing) en las 3 velocidades. "Natural" usa ruido
+        filtrado (textura de viento). "Organo" usa sintesis aditiva (fundamental + 2
+        armonicos), inspirado en el dispositivo Sonic Golf de un fisico de Yale. "Star Wars"
+        usa ring-modulation. Los tres siguen la misma curva de velocidad de la cabeza del palo.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const TEMPOS = {
+    lento:  { back: 0.90, pause: 0.08, down: 0.30, tail: 0.22, rest: 0.55 },
+    medio:  { back: 0.75, pause: 0.06, down: 0.25, tail: 0.18, rest: 0.42 },
+    rapido: { back: 0.60, pause: 0.05, down: 0.20, tail: 0.15, rest: 0.32 },
+  };
+
+  let audioCtx = null;
+  let playing = false;
+  let currentTempo = 'medio';
+  let soundMode = 'natural';
+  let tickEnabled = false;
+  let freqLow = 260, freqHigh = 950;
+
+  let cycleTimeoutId = null;
+  let rafId = null;
+  let cycleStartPerf = 0;
+  let cycleDurationMs = 0;
+
+  // Natural engine nodes
+  let noiseSource = null, filter = null, naturalGain = null;
+  // Star Wars engine nodes
+  let carrier = null, ringMod = null, ringGain = null, waveshaper = null, starwarsGain = null;
+  // Organ engine nodes
+  let organFund = null, organH2 = null, organH3 = null, organGFund = null, organGH2 = null, organGH3 = null, organGain = null;
+  // Shared
+  let masterGain = null;
+  let tickBuffer = null;
+
+  function makeDistortionCurve(amount) {
+    const n = 44100;
+    const curve = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const x = (i * 2) / n - 1;
+      curve[i] = ((3 + amount) * x * 20 * (Math.PI / 180)) / (Math.PI + amount * Math.abs(x));
+    }
+    return curve;
+  }
+
+  function buildNoiseBuffer(ctx, seconds) {
+    const bufferSize = Math.floor(ctx.sampleRate * seconds);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    return buffer;
+  }
+
+  function setupAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 1.0;
+    masterGain.connect(audioCtx.destination);
+
+    // Natural (filtered noise) chain
+    noiseSource = audioCtx.createBufferSource();
+    noiseSource.buffer = buildNoiseBuffer(audioCtx, 2);
+    noiseSource.loop = true;
+    filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.1;
+    filter.frequency.value = 500;
+    naturalGain = audioCtx.createGain();
+    naturalGain.gain.value = 0.0;
+    noiseSource.connect(filter);
+    filter.connect(naturalGain);
+    naturalGain.connect(masterGain);
+    noiseSource.start();
+
+    // Star Wars (ring-modulated oscillator) chain
+    carrier = audioCtx.createOscillator();
+    carrier.type = 'sawtooth';
+    carrier.frequency.value = 150;
+    ringMod = audioCtx.createOscillator();
+    ringMod.type = 'sine';
+    ringMod.frequency.value = 34;
+    ringGain = audioCtx.createGain();
+    ringGain.gain.value = 0;
+    waveshaper = audioCtx.createWaveShaper();
+    waveshaper.curve = makeDistortionCurve(12);
+    starwarsGain = audioCtx.createGain();
+    starwarsGain.gain.value = 0.0;
+
+    carrier.connect(ringGain);
+    ringMod.connect(ringGain.gain);
+    ringGain.connect(waveshaper);
+    waveshaper.connect(starwarsGain);
+    starwarsGain.connect(masterGain);
+    carrier.start();
+    ringMod.start();
+
+    // Organ (additive harmonic synthesis) chain -- inspired by Sonic Golf's
+    // MIDI/pipe-organ tone: a fundamental sine plus two harmonics (x2, x3)
+    // at decreasing amplitude, all riding the same speed-mapped pitch curve.
+    organFund = audioCtx.createOscillator();
+    organFund.type = 'sine';
+    organFund.frequency.value = 300;
+    organH2 = audioCtx.createOscillator();
+    organH2.type = 'sine';
+    organH2.frequency.value = 600;
+    organH3 = audioCtx.createOscillator();
+    organH3.type = 'triangle';
+    organH3.frequency.value = 900;
+    organGFund = audioCtx.createGain(); organGFund.gain.value = 0.55;
+    organGH2 = audioCtx.createGain(); organGH2.gain.value = 0.28;
+    organGH3 = audioCtx.createGain(); organGH3.gain.value = 0.14;
+    organGain = audioCtx.createGain(); organGain.gain.value = 0.0;
+
+    organFund.connect(organGFund); organGFund.connect(organGain);
+    organH2.connect(organGH2); organGH2.connect(organGain);
+    organH3.connect(organGH3); organGH3.connect(organGain);
+    organGain.connect(masterGain);
+    organFund.start(); organH2.start(); organH3.start();
+
+    // Tick (impact click) buffer
+    tickBuffer = buildNoiseBuffer(audioCtx, 0.05);
+  }
+
+  // ---- Interpolation modes ----
+  // Linear: used for pitch (Hz) — a direct, proportional sweep.
+  // Exponential/geometric: used for loudness — the ear perceives loudness on a
+  // roughly logarithmic scale, so equal *perceptual* steps need exponential
+  // (not linear) steps in raw gain. This is what makes the quiet moment at the
+  // transition actually read as quiet, and the impact peak read as a real jump.
+  function linInterp(a, b, s) { return a + (b - a) * s; }
+  function expInterp(a, b, s) {
+    const aa = Math.max(a, 0.0008), bb = Math.max(b, 0.0008);
+    return aa * Math.pow(bb / aa, s);
+  }
+
+  // ---- Clubhead-speed-shaped curves ----
+  // Backswing: starts at ~0 speed, accelerates to a mid-swing peak, decelerates
+  // back toward ~0 at the top (the natural pause before transition). Symmetric arch.
+  function backswingCurve(fromV, peakV, steps, interp) {
+    steps = steps || 48;
+    interp = interp || linInterp;
+    const arr = new Float32Array(steps);
+    for (let i = 0; i < steps; i++) {
+      const x = i / (steps - 1);
+      const shape = Math.sin(Math.PI * x); // 0 -> 1 (mid) -> 0
+      arr[i] = interp(fromV, peakV, shape);
+    }
+    return arr;
+  }
+  // Downswing: speed builds slowly off the transition, then accelerates hard
+  // into impact (the "release"/whip). Ease-in curve, not linear.
+  function downswingCurve(fromV, peakV, steps, interp) {
+    steps = steps || 40;
+    interp = interp || linInterp;
+    const arr = new Float32Array(steps);
+    for (let i = 0; i < steps; i++) {
+      const x = i / (steps - 1);
+      const shape = Math.pow(x, 2.3); // slow start, fast finish
+      arr[i] = interp(fromV, peakV, shape);
+    }
+    return arr;
+  }
+  // Follow-through: rapid deceleration right after impact, then leveling off.
+  function tailCurve(fromV, toV, steps, interp) {
+    steps = steps || 24;
+    interp = interp || linInterp;
+    const arr = new Float32Array(steps);
+    for (let i = 0; i < steps; i++) {
+      const x = i / (steps - 1);
+      const shape = 1 - Math.pow(1 - x, 2); // fast drop, then leveling
+      arr[i] = interp(fromV, toV, shape);
+    }
+    return arr;
+  }
+
+  function scaleCurve(curve, factor) {
+    const out = new Float32Array(curve.length);
+    for (let i = 0; i < curve.length; i++) out[i] = curve[i] * factor;
+    return out;
+  }
+
+  function scheduleTick(tImpact) {
+    if (!tickEnabled) return;
+    const src = audioCtx.createBufferSource();
+    src.buffer = tickBuffer;
+    const hp = audioCtx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 2800;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, tImpact);
+    g.gain.exponentialRampToValueAtTime(0.5, tImpact + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, tImpact + 0.05);
+    src.connect(hp);
+    hp.connect(g);
+    g.connect(masterGain);
+    src.start(tImpact);
+    src.stop(tImpact + 0.06);
+  }
+
+  function scheduleCycle() {
+    const t = TEMPOS[currentTempo];
+    const lookahead = 0.05;
+    const t0 = audioCtx.currentTime + lookahead;
+    const tTop = t0 + t.back;
+    const tPauseEnd = tTop + t.pause;
+    const tImpact = tPauseEnd + t.down;
+    const tTail = tImpact + t.tail;
+
+    if (soundMode === 'natural') {
+      naturalGain.gain.cancelScheduledValues(t0);
+      filter.frequency.cancelScheduledValues(t0);
+
+      const backPeakFreq = freqLow + (freqHigh - freqLow) * 0.55;
+      filter.frequency.setValueCurveAtTime(backswingCurve(freqLow, backPeakFreq), t0, t.back);
+      naturalGain.gain.setValueCurveAtTime(backswingCurve(0.02, 0.30, undefined, expInterp), t0, t.back);
+      // holds at freqLow / 0.02 through the pause automatically
+
+      filter.frequency.setValueCurveAtTime(downswingCurve(freqLow, freqHigh), tPauseEnd, t.down);
+      naturalGain.gain.setValueCurveAtTime(downswingCurve(0.02, 0.65, undefined, expInterp), tPauseEnd, t.down);
+
+      filter.frequency.setValueCurveAtTime(tailCurve(freqHigh, freqLow + (freqHigh - freqLow) * 0.12), tImpact, t.tail);
+      naturalGain.gain.setValueCurveAtTime(tailCurve(0.65, 0.001, undefined, expInterp), tImpact, t.tail);
+
+      starwarsGain.gain.cancelScheduledValues(t0);
+      starwarsGain.gain.setValueAtTime(0.0, t0);
+      organGain.gain.cancelScheduledValues(t0);
+      organGain.gain.setValueAtTime(0.0, t0);
+    } else if (soundMode === 'starwars') {
+      starwarsGain.gain.cancelScheduledValues(t0);
+      carrier.frequency.cancelScheduledValues(t0);
+
+      const lowF = Math.max(40, freqLow * 0.4);
+      const highF = Math.max(lowF + 20, freqHigh * 0.4);
+      const backPeakF = lowF + (highF - lowF) * 0.55;
+
+      carrier.frequency.setValueCurveAtTime(backswingCurve(lowF, backPeakF), t0, t.back);
+      starwarsGain.gain.setValueCurveAtTime(backswingCurve(0.015, 0.22, undefined, expInterp), t0, t.back);
+
+      carrier.frequency.setValueCurveAtTime(downswingCurve(lowF, highF), tPauseEnd, t.down);
+      starwarsGain.gain.setValueCurveAtTime(downswingCurve(0.015, 0.42, undefined, expInterp), tPauseEnd, t.down);
+
+      carrier.frequency.setValueCurveAtTime(tailCurve(highF, lowF + (highF - lowF) * 0.12), tImpact, t.tail);
+      starwarsGain.gain.setValueCurveAtTime(tailCurve(0.42, 0.001, undefined, expInterp), tImpact, t.tail);
+
+      naturalGain.gain.cancelScheduledValues(t0);
+      naturalGain.gain.setValueAtTime(0.0, t0);
+      organGain.gain.cancelScheduledValues(t0);
+      organGain.gain.setValueAtTime(0.0, t0);
+    } else if (soundMode === 'organ') {
+      organGain.gain.cancelScheduledValues(t0);
+      organFund.frequency.cancelScheduledValues(t0);
+      organH2.frequency.cancelScheduledValues(t0);
+      organH3.frequency.cancelScheduledValues(t0);
+
+      const oLow = freqLow, oHigh = freqHigh;
+      const oBackPeak = oLow + (oHigh - oLow) * 0.55;
+
+      const backBase = backswingCurve(oLow, oBackPeak);
+      organFund.frequency.setValueCurveAtTime(backBase, t0, t.back);
+      organH2.frequency.setValueCurveAtTime(scaleCurve(backBase, 2), t0, t.back);
+      organH3.frequency.setValueCurveAtTime(scaleCurve(backBase, 3), t0, t.back);
+      organGain.gain.setValueCurveAtTime(backswingCurve(0.02, 0.28, undefined, expInterp), t0, t.back);
+
+      const downBase = downswingCurve(oLow, oHigh);
+      organFund.frequency.setValueCurveAtTime(downBase, tPauseEnd, t.down);
+      organH2.frequency.setValueCurveAtTime(scaleCurve(downBase, 2), tPauseEnd, t.down);
+      organH3.frequency.setValueCurveAtTime(scaleCurve(downBase, 3), tPauseEnd, t.down);
+      organGain.gain.setValueCurveAtTime(downswingCurve(0.02, 0.60, undefined, expInterp), tPauseEnd, t.down);
+
+      const tailBase = tailCurve(oHigh, oLow + (oHigh - oLow) * 0.12);
+      organFund.frequency.setValueCurveAtTime(tailBase, tImpact, t.tail);
+      organH2.frequency.setValueCurveAtTime(scaleCurve(tailBase, 2), tImpact, t.tail);
+      organH3.frequency.setValueCurveAtTime(scaleCurve(tailBase, 3), tImpact, t.tail);
+      organGain.gain.setValueCurveAtTime(tailCurve(0.60, 0.001, undefined, expInterp), tImpact, t.tail);
+
+      naturalGain.gain.cancelScheduledValues(t0);
+      naturalGain.gain.setValueAtTime(0.0, t0);
+      starwarsGain.gain.cancelScheduledValues(t0);
+      starwarsGain.gain.setValueAtTime(0.0, t0);
+    }
+
+    scheduleTick(tImpact);
+
+    cycleStartPerf = performance.now() + lookahead * 1000;
+    cycleDurationMs = (t.back + t.pause + t.down + t.tail) * 1000;
+
+    const totalCycle = (t.back + t.pause + t.down + t.tail + t.rest) * 1000;
+    cycleTimeoutId = setTimeout(scheduleCycle, totalCycle);
+  }
+
+  function drawZones() {
+    const t = TEMPOS[currentTempo];
+    const total = t.back + t.pause + t.down + t.tail;
+    const track = document.getElementById('tt-track');
+    const w = track.clientWidth;
+    const backW = (t.back / total) * w;
+    const downStart = ((t.back + t.pause) / total) * w;
+    const downW = (t.down / total) * w;
+    document.getElementById('tt-zone-back').style.width = backW + 'px';
+    document.getElementById('tt-zone-down').style.left = downStart + 'px';
+    document.getElementById('tt-zone-down').style.width = downW + 'px';
+  }
+
+  function animateMarker() {
+    const track = document.getElementById('tt-track');
+    const marker = document.getElementById('tt-marker');
+    const w = track.clientWidth;
+    function step() {
+      if (!playing) return;
+      const elapsed = performance.now() - cycleStartPerf;
+      const frac = Math.max(0, Math.min(1, elapsed / cycleDurationMs));
+      marker.style.left = (frac * (w - 6)) + 'px';
+      rafId = requestAnimationFrame(step);
+    }
+    rafId = requestAnimationFrame(step);
+  }
+
+  function start() {
+    if (!audioCtx) setupAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    playing = true;
+    drawZones();
+    scheduleCycle();
+    animateMarker();
+  }
+
+  function stop() {
+    playing = false;
+    if (cycleTimeoutId) clearTimeout(cycleTimeoutId);
+    if (rafId) cancelAnimationFrame(rafId);
+    if (audioCtx) {
+      const now = audioCtx.currentTime;
+      if (naturalGain) { naturalGain.gain.cancelScheduledValues(now); naturalGain.gain.linearRampToValueAtTime(0, now + 0.15); }
+      if (starwarsGain) { starwarsGain.gain.cancelScheduledValues(now); starwarsGain.gain.linearRampToValueAtTime(0, now + 0.15); }
+      if (organGain) { organGain.gain.cancelScheduledValues(now); organGain.gain.linearRampToValueAtTime(0, now + 0.15); }
+    }
+    document.getElementById('tt-marker').style.left = '0px';
+  }
+
+  document.getElementById('tt-play-btn').onclick = function () {
+    const btn = this;
+    if (!playing) {
+      start();
+      btn.textContent = 'Detener';
+      btn.classList.add('playing');
+    } else {
+      stop();
+      btn.textContent = 'Reproducir';
+      btn.classList.remove('playing');
+    }
+  };
+
+  document.querySelectorAll('#tt-tempo-seg .tt-seg-btn').forEach((el) => {
+    el.onclick = () => {
+      document.querySelectorAll('#tt-tempo-seg .tt-seg-btn').forEach((b) => b.classList.remove('sel'));
+      el.classList.add('sel');
+      currentTempo = el.dataset.tempo;
+      drawZones();
+      if (playing) { if (cycleTimeoutId) clearTimeout(cycleTimeoutId); scheduleCycle(); }
+    };
+  });
+
+  document.querySelectorAll('#tt-sound-seg .tt-seg-btn').forEach((el) => {
+    el.onclick = () => {
+      document.querySelectorAll('#tt-sound-seg .tt-seg-btn').forEach((b) => b.classList.remove('sel'));
+      el.classList.add('sel');
+      soundMode = el.dataset.sound;
+      if (playing) { if (cycleTimeoutId) clearTimeout(cycleTimeoutId); scheduleCycle(); }
+    };
+  });
+
+  document.getElementById('tt-low-slider').oninput = (e) => {
+    freqLow = parseInt(e.target.value, 10);
+    document.getElementById('tt-low-val').textContent = freqLow + ' Hz';
+  };
+  document.getElementById('tt-high-slider').oninput = (e) => {
+    freqHigh = parseInt(e.target.value, 10);
+    document.getElementById('tt-high-val').textContent = freqHigh + ' Hz';
+  };
+
+  document.getElementById('tt-tick-switch').onclick = function () {
+    tickEnabled = !tickEnabled;
+    this.classList.toggle('on', tickEnabled);
+  };
+
+  drawZones();
+})();
+</script>
+</body>
+</html>

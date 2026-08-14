@@ -33,6 +33,17 @@ export async function renderHome(ctx) {
       '</div>';
   }).join('');
 
+  const preRoundHtml =
+    '<div class="gc-card">' +
+      '<div class="gc-eyebrow" style="color:var(--green)">Antes de jugar</div>' +
+      '<div class="gc-variant-pill" id="gc-warmup-entry">' +
+        '<div><div class="gc-variant-name">Warm-up</div><div class="gc-variant-desc">Elegi cuanto tiempo tenes</div></div>' +
+      '</div>' +
+      '<div class="gc-variant-pill" id="gc-tempo-entry" style="margin-bottom:0;">' +
+        '<div><div class="gc-variant-name">🎧 Tempo Trainer</div><div class="gc-variant-desc">Ritmo 3:1 con audio</div></div>' +
+      '</div>' +
+    '</div>';
+
   APP.innerHTML =
     '<div class="gc-header">' +
       '<div class="gc-eyebrow">Practica de golf · Juan</div>' +
@@ -40,7 +51,7 @@ export async function renderHome(ctx) {
       '<div class="gc-sub">Elegi una variante y registra tu practica.</div>' +
     '</div>' +
     '<div class="gc-body">' +
-      focusHtml + lastHtml +
+      preRoundHtml + focusHtml + lastHtml +
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
         pillsHtml +
@@ -50,7 +61,13 @@ export async function renderHome(ctx) {
       (fullSessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-btn" style="margin-top:10px;">Exportar todo a CSV</button>' : '') +
     '</div>';
 
-  document.querySelectorAll('.gc-variant-pill').forEach((el) => {
+  document.getElementById('gc-warmup-entry').onclick = () => { state.screen = 'warmup-select'; render(); };
+  document.getElementById('gc-tempo-entry').onclick = () => { state.returnScreen = 'home'; state.screen = 'tempo'; render(); };
+
+  // [data-variant]: distingue las 5 pills de variante de las de "Antes de
+  // jugar" de arriba, que comparten la misma clase gc-variant-pill por estilo
+  // pero no tienen data-variant.
+  document.querySelectorAll('.gc-variant-pill[data-variant]').forEach((el) => {
     el.onclick = () => { state.selectedVariant = el.dataset.variant; render(); };
   });
   document.getElementById('gc-start-btn').onclick = async () => {
