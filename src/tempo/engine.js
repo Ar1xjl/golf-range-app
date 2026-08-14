@@ -1,7 +1,7 @@
 // Motor de audio del Tempo Trainer.
 //
 // Base portada 1:1 desde legacy/tempo_trainer_doppler_prototipo.html (curvas
-// de tono/volumen, relacion 3:1, motores Natural/GolfSaber). Reverb,
+// de tono/volumen, relacion 3:1, motores Natural/Saber). Reverb,
 // contraste dinamico, los 6 presets de velocidad estilo Garmin y el motor
 // Relax (cuenco tibetano) se disenaron y probaron en un artifact aparte
 // ("Tempo Sound Lab") antes de llevarlos aca - ver comentarios puntuales.
@@ -126,7 +126,7 @@ export function createTempoEngine(initial) {
 
   // Natural
   let noiseSource, filter, naturalGain;
-  // GolfSaber (ring-modulation + waveshaper) - antes "Star Wars"/"Sintetico"
+  // Saber (ring-modulation + waveshaper) - antes "Star Wars"/"Sintetico"
   let carrier, ringMod, ringGain, waveshaper, saberGain;
   // Relax (cuenco tibetano): 3 parciales inarmonicos, cada uno un par de
   // senos levemente destemplados (beating) en vez de armonicos limpios.
@@ -195,7 +195,7 @@ export function createTempoEngine(initial) {
     naturalGain.connect(preFx);
     noiseSource.start();
 
-    // GolfSaber (ring-modulated oscillator) chain
+    // Saber (ring-modulated oscillator) chain
     carrier = audioCtx.createOscillator();
     carrier.type = 'sawtooth';
     carrier.frequency.value = 150;

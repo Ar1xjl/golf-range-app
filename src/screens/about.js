@@ -7,7 +7,7 @@ export function renderAbout(ctx) {
   APP.innerHTML =
     '<div class="gc-header">' +
       '<button class="gc-nav-back" id="gc-back-btn">◂ VOLVER</button>' +
-      '<div class="gc-eyebrow">Registro de rango</div>' +
+      '<div class="gc-eyebrow">GolfSaber</div>' +
       '<h1 class="gc-title">Acerca de la app</h1>' +
     '</div>' +
     '<div class="gc-body">' +

@@ -10,8 +10,8 @@ export default defineConfig({
       manifest: {
         id: '/',
         lang: 'es',
-        name: 'Registro de Rango',
-        short_name: 'Rango',
+        name: 'GolfSaber',
+        short_name: 'GolfSaber',
         description: 'Registro de sesiones de practica de golf (rango y putting)',
         start_url: '.',
         scope: '.',

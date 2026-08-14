@@ -1,4 +1,4 @@
-/* Registro de Rango - estilos de la app.
+/* GolfSaber - estilos de la app.
    Portado 1:1 desde el prototipo (artifact), solo se saco el @import de
    Google Fonts porque las fuentes ahora se cargan self-hosted (ver main.js)
    para que funcionen sin conexion en el rango. */
@@ -333,6 +333,9 @@ body { background: var(--bg, #F5F1E4); }
 #gc-app .tt-tempo-label {
   font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 16px;
   color: var(--green-deep); margin: 8px 0 2px;
+}
+#gc-app .tt-tempo-detail {
+  font-weight: 400; font-size: 13px; color: var(--ink-soft);
 }
 #gc-app .tt-tempo-ticks {
   display: flex; justify-content: space-between;

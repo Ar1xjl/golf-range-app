@@ -47,8 +47,8 @@ export async function renderHome(ctx) {
   APP.innerHTML =
     '<div class="gc-header">' +
       '<div class="gc-eyebrow">Practica de golf · Juan</div>' +
-      '<h1 class="gc-title">Registro de rango</h1>' +
-      '<div class="gc-sub">Elegi una variante y registra tu practica.</div>' +
+      '<h1 class="gc-title">GolfSaber</h1>' +
+      '<div class="gc-sub">Elegi una variante y entrena con proposito.</div>' +
     '</div>' +
     '<div class="gc-body">' +
       preRoundHtml + focusHtml + lastHtml +

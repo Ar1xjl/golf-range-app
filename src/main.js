@@ -1,4 +1,4 @@
-// Registro de Rango — punto de entrada.
+// GolfSaber — punto de entrada.
 // Orquesta estado + dispatcher de pantallas. Mismo patron que el prototipo
 // original (un solo <div id="gc-app"> re-renderizado por innerHTML en cada
 // cambio), pero repartido en modulos.

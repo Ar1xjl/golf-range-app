@@ -14,7 +14,7 @@ import { createTempoEngine, TEMPO_ORDER, TEMPO_LABELS } from '../tempo/engine.js
 
 const SETTINGS_ID = 'tempoTrainer';
 const ENGINES = ['natural', 'saber', 'relax'];
-const ENGINE_LABELS = { natural: 'Natural', saber: 'GolfSaber', relax: 'Relax' };
+const ENGINE_LABELS = { natural: 'Natural', saber: 'Saber', relax: 'Relax' };
 const ENGINE_NOTES = {
   natural: 'Ruido filtrado (bandpass), textura de swoosh/viento.',
   saber: 'Ring-modulation + waveshaper, timbre de sable de luz.',
@@ -23,7 +23,7 @@ const ENGINE_NOTES = {
 // Cada motor recuerda su propio grave/agudo/reverb/dinamica - los ratios
 // inarmonicos del Relax se van a zona de silbido con fundamentales altos
 // (un cuenco real tampoco cubre 5 octavas), asi que arranca en una banda
-// mas angosta y con mas cola de reverb que Natural/GolfSaber.
+// mas angosta y con mas cola de reverb que Natural/Saber.
 const DEFAULT_PER_ENGINE = {
   natural: { freqLow: 260, freqHigh: 950, reverbWet: 0, reverbDecay: 45, dynamics: 1.0 },
   saber: { freqLow: 260, freqHigh: 950, reverbWet: 0, reverbDecay: 45, dynamics: 1.0 },
@@ -46,7 +46,7 @@ async function loadPrefs(db) {
     perEngine[k] = { ...DEFAULT_PER_ENGINE[k], ...((saved && saved.perEngine && saved.perEngine[k]) || {}) };
   });
   // Valida contra las claves vigentes: alguien que probo la app antes de
-  // los presets Garmin (o antes del rename Sintetico/Organo -> GolfSaber/
+  // los presets Garmin (o antes de los renames Sintetico/Organo -> Saber/
   // Relax) puede tener guardado un tempo/soundMode que ya no existe
   // ('medio', 'starwars', 'organ'...). Sin este chequeo, TEMPOS[tempo] o
   // perEngine[soundMode] da undefined y el motor tira una excepcion en
@@ -77,6 +77,15 @@ export function cleanupTempo() {
   if (engine) { engine.dispose(); engine = null; }
   releaseWakeLock();
   prefs = null;
+}
+
+// "1,00 / 0,33 s" - back/down en segundos con coma decimal, para los
+// golfistas mas tecnicos que quieren ver el numero exacto del preset
+// (no solo el nombre), sin ocupar una linea vertical extra en el telefono.
+function formatSeconds(v) { return v.toFixed(2).replace('.', ','); }
+function tempoLabelHtml(tempoKey) {
+  const t = engine.getTempoPreset(tempoKey);
+  return TEMPO_LABELS[tempoKey] + ' <span class="tt-tempo-detail">(' + formatSeconds(t.back) + ' / ' + formatSeconds(t.down) + ' s)</span>';
 }
 
 function drawZones() {
@@ -132,7 +141,7 @@ export async function renderTempo(ctx) {
     '<div class="gc-body">' +
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Velocidad de swing</div>' +
-        '<div class="tt-tempo-label" id="tt-tempo-label">' + TEMPO_LABELS[prefs.tempo] + '</div>' +
+        '<div class="tt-tempo-label" id="tt-tempo-label">' + tempoLabelHtml(prefs.tempo) + '</div>' +
         '<input type="range" id="tt-tempo-slider" min="0" max="5" step="1" value="' + tempoIdx + '">' +
         '<div class="tt-tempo-ticks"><span>Amateur</span><span>Pro</span></div>' +
 
@@ -204,7 +213,7 @@ export async function renderTempo(ctx) {
   document.getElementById('tt-tempo-slider').oninput = (e) => {
     const idx = parseInt(e.target.value, 10);
     prefs.tempo = TEMPO_ORDER[idx];
-    document.getElementById('tt-tempo-label').textContent = TEMPO_LABELS[prefs.tempo];
+    document.getElementById('tt-tempo-label').innerHTML = tempoLabelHtml(prefs.tempo);
     engine.setTempo(prefs.tempo);
     drawZones();
     persistPrefs(db);

@@ -1,8 +1,12 @@
-# Registro de Rango
+# GolfSaber
 
 App de registro de sesiones de practica de golf (rango y putting). PWA
 instalable, pensada para usarse parado en el driving range o en el green,
-sin depender de wifi.
+sin depender de wifi. El nombre es un guino al motor "Saber" del Tempo
+Trainer (ring-modulation, ex "Star Wars"), no describe la app entera - la
+app en si es un registro de practica con 5 variantes + warm-up + tempo
+trainer, ver mas abajo. La URL/repo se mantiene como `golf-range-app` por
+compatibilidad con el icono ya instalado (ver seccion de instalacion).
 
 Migrada desde un artifact de un solo archivo HTML (ver [`legacy/`](legacy/))
 a un proyecto propio con Vite, IndexedDB y service worker.
@@ -35,8 +39,10 @@ prep pre-ronda: no tienen Think Box/Play Box/resultado).
   Velocidad: slider de 6 presets estilo Garmin Tempo Trainer Pro (Amateur/Pro
   x Lento/Medio/Rapido, `TEMPOS` en `src/tempo/engine.js`; Garmin publica
   solo back/down en segundos, pausa/tail/rest se derivaron proporcionalmente
-  al resto de la curva). Sonido: **Natural** (ruido filtrado) y **GolfSaber**
-  (ring-modulation, ex "Star Wars"/"Sintetico") sin cambios de sintesis;
+  al resto de la curva; el label del preset muestra el detalle "(1,00 / 0,33 s)"
+  en texto chico al lado del nombre). Sonido: **Natural** (ruido filtrado) y
+  **Saber** (ring-modulation, ex "Star Wars"/"Sintetico"/"GolfSaber" -
+  renombrado para no chocar con el nombre de la app) sin cambios de sintesis;
   **Relax** (cuenco tibetano: parciales inarmonicos con *beating* entre
   osciladores destemplados) reemplaza al Organo original. Reverb/eco
   (bus de 4 delays en paralelo, sin archivo de impulso) y contraste dinamico
@@ -148,3 +154,8 @@ npm run icons
 Un service worker no funciona por `file://` (salvo en localhost), asi que
 para instalarla como icono real hace falta servirla por HTTPS. Plan:
 GitHub Pages, sirviendo el contenido de `dist/` (build de produccion).
+
+Si el nombre de la app cambia (manifest/meta tags) despues de ya haber
+agregado el icono a la pantalla de inicio, iOS **no actualiza el label solo**
+- hay que borrar el icono viejo y agregarlo de nuevo para que tome el
+nombre nuevo.
