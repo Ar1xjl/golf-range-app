@@ -23,7 +23,10 @@
   max-width: 480px;
   margin: 0 auto;
   min-height: 100%;
-  padding: 0 0 40px 0;
+  /* iPhone con Dynamic Island/notch (parado en pantalla completa como PWA
+     instalada) y home indicator abajo - sin esto el header/banner queda
+     tapado arriba y el ultimo boton pegado al borde inferior. */
+  padding: 0 0 calc(40px + env(safe-area-inset-bottom)) 0;
   position: relative;
 }
 
@@ -35,7 +38,7 @@ body { background: var(--bg, #F5F1E4); }
 #gc-app .gc-header {
   background: var(--green-deep);
   color: var(--bg);
-  padding: 22px 20px 18px;
+  padding: calc(22px + env(safe-area-inset-top)) 20px 18px;
   border-radius: 0 0 18px 18px;
 }
 #gc-app .gc-eyebrow {
@@ -91,6 +94,11 @@ body { background: var(--bg, #F5F1E4); }
   border: 1.5px solid var(--green);
 }
 #gc-app .gc-btn-disabled { background: #E4E0D2; color: #9A9587; cursor: default; }
+#gc-app .gc-btn-danger { background: var(--brick); color: #fff; }
+#gc-app .gc-btn-danger-ghost {
+  background: transparent; color: var(--brick);
+  border: 1.5px solid var(--brick);
+}
 #gc-app .gc-btn-sm { padding: 10px 12px; font-size: 13px; }
 
 #gc-app .gc-row { display: flex; gap: 10px; }
@@ -171,6 +179,21 @@ body { background: var(--bg, #F5F1E4); }
   text-align: center; padding: 30px 10px; color: var(--ink-soft); font-size: 13px;
 }
 
+/* Historial: fila con estado (finalizada/en progreso) + borrar */
+#gc-app .gc-hist-entry { border-bottom: 1px solid var(--line); padding: 8px 0; }
+#gc-app .gc-hist-entry:last-child { border-bottom: none; }
+#gc-app .gc-hist-entry .gc-hist-row { border-bottom: none; padding: 0 0 4px; }
+#gc-app .gc-status-tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--brick); border: 1px solid var(--brick); border-radius: 999px; padding: 1px 6px; margin-left: 6px;
+}
+#gc-app .gc-hist-actions { display: flex; justify-content: flex-end; gap: 6px; }
+#gc-app .gc-hist-del-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; border: none; background: none;
+  cursor: pointer; color: var(--ink-soft); padding: 3px 8px; -webkit-tap-highlight-color: transparent;
+}
+#gc-app .gc-hist-del-btn.confirm-yes { color: #fff; background: var(--brick); border-radius: 6px; }
+
 #gc-app .gc-variant-pill {
   display: flex; justify-content: space-between; align-items: center;
   border: 1.5px solid var(--line); border-radius: 12px;
@@ -188,7 +211,9 @@ body { background: var(--bg, #F5F1E4); }
 #gc-app .gc-sea-banner {
   background: #CFE9E5;
   color: var(--green-deep);
-  padding: 12px 20px;
+  /* Es el primer elemento de la pantalla en sesiones (sin gc-header antes),
+     asi que necesita el mismo respiro para la Dynamic Island/notch. */
+  padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12.5px;
   font-weight: 600;
@@ -304,3 +329,34 @@ body { background: var(--bg, #F5F1E4); }
   background: #fff; transition: left 0.15s ease;
 }
 #gc-app .tt-switch.on .tt-switch-knob { left: 23px; }
+
+#gc-app .tt-tempo-label {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 16px;
+  color: var(--green-deep); margin: 8px 0 2px;
+}
+#gc-app .tt-tempo-ticks {
+  display: flex; justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); margin-top: 4px;
+}
+
+/* Ajustes de sonido: colapsable (details/summary), mismo look de gc-card */
+#gc-app .tt-settings-toggle {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--bg-card);
+  margin-bottom: 14px; overflow: hidden;
+}
+#gc-app .tt-settings-toggle > summary {
+  cursor: pointer; list-style: none; padding: 16px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-weight: 600; font-size: 14px; color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+#gc-app .tt-settings-toggle > summary::-webkit-details-marker { display: none; }
+#gc-app .tt-settings-toggle > summary .tt-chevron { color: var(--gold); font-size: 18px; font-weight: 700; }
+#gc-app .tt-settings-toggle[open] > summary { border-bottom: 1px solid var(--line); }
+#gc-app .tt-settings-body { padding: 4px 18px 18px; }
+#gc-app .tt-settings-body .tt-sub-card {
+  border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 14px; background: #fff;
+}
+#gc-app .tt-settings-body .tt-sub-card:first-child { margin-top: 14px; }

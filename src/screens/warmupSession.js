@@ -2,6 +2,7 @@
 // manual, no auto-avanza al llegar a cero - ver discusion en el chat).
 
 import { WARMUP_PLANS } from '../warmup.js';
+import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 
 // El timer re-renderiza toda la pantalla cada segundo (mismo patron de
 // re-render completo que el resto de la app). Singleton de modulo porque
@@ -62,6 +63,7 @@ export function renderWarmupSession(ctx) {
         '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-next-btn">' + (isLast ? 'Finalizar' : 'Siguiente bloque') + '</button>' +
       '</div>' +
       '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Salir</button>' +
+      cancelRowHtml(state) +
     '</div>';
 
   function goToBlock(i) {
@@ -85,10 +87,14 @@ export function renderWarmupSession(ctx) {
   };
   document.getElementById('gc-exit-btn').onclick = async () => {
     await db.saveWarmup({ id: ws.id, duration: ws.duration, date: ws.date, finished: false });
+    state.confirmingCancel = false;
     state.warmupSession = null;
     state.screen = 'home';
     render();
   };
+  wireCancelRow(state, render, () => {
+    state.warmupSession = null; state.screen = 'home'; render();
+  });
   const tempoBtn = document.getElementById('gc-warmup-tempo-btn');
   if (tempoBtn) tempoBtn.onclick = () => { state.returnScreen = 'warmup-session'; state.screen = 'tempo'; render(); };
 }

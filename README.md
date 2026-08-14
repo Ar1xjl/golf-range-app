@@ -31,12 +31,21 @@ prep pre-ronda: no tienen Think Box/Play Box/resultado).
   bloque medio primero, nunca movilidad ni putting. Timer de referencia por
   bloque (avance manual, no auto-avanza). Guarda historial liviano
   (`fecha + duracion elegida`) en el store `warmups`, fuera del CSV export.
-- **Tempo Trainer**: metronomo de audio 3:1 (Tour Tempo / Sonic Golf) con 3
-  motores de sonido (Natural/Organo/Star Wars), portado 1:1 desde
-  `legacy/tempo_trainer_doppler_prototipo.html` en `src/tempo/engine.js`
-  (logica de audio sin cambios). Preferencias (tempo, motor, Hz, tic)
-  persistidas en el store `settings`. Acceso desde el home y desde el
-  bloque final del Warm-up.
+- **Tempo Trainer**: metronomo de audio 3:1 (Tour Tempo / Sonic Golf).
+  Velocidad: slider de 6 presets estilo Garmin Tempo Trainer Pro (Amateur/Pro
+  x Lento/Medio/Rapido, `TEMPOS` en `src/tempo/engine.js`; Garmin publica
+  solo back/down en segundos, pausa/tail/rest se derivaron proporcionalmente
+  al resto de la curva). Sonido: **Natural** (ruido filtrado) y **GolfSaber**
+  (ring-modulation, ex "Star Wars"/"Sintetico") sin cambios de sintesis;
+  **Relax** (cuenco tibetano: parciales inarmonicos con *beating* entre
+  osciladores destemplados) reemplaza al Organo original. Reverb/eco
+  (bus de 4 delays en paralelo, sin archivo de impulso) y contraste dinamico
+  ajustables, colapsados bajo "Ajustes de sonido" para no ocupar la pantalla
+  inicial. Cada motor recuerda su propio grave/agudo/reverb/dinamica.
+  Preferencias persistidas en el store `settings`. Acceso desde el home y
+  desde el bloque final del Warm-up.
+  Reverb, dinamica y el motor Relax se disenaron primero en un artifact
+  aparte ("Tempo Sound Lab") antes de llevarlos a la app.
 
 Detalles de arquitectura no obvios:
 - `src/tempo/engine.js` es una factory (`createTempoEngine`) con
@@ -52,6 +61,23 @@ Detalles de arquitectura no obvios:
 - `main.js` tiene un mecanismo generico de cleanup-al-navegar-afuera
   (`SCREEN_CLEANUP`) para las pantallas que dejan algo vivo entre renders
   (el motor de audio, el timer del warm-up).
+
+## Otras piezas
+
+- **Cancelar sesion**: en las 3 pantallas de sesion (tiro-a-tiro, bloques,
+  warm-up) hay un boton "Cancelar sesion" (`src/confirmDiscard.js`, dos
+  pasos de confirmacion) que descarta sin escribir nada en IndexedDB -
+  distinto de "Guardar y salir", que persiste como `finished:false`.
+- **Historial con borrado**: `screens/history.js` muestra tambien las
+  sesiones sin terminar (antes invisibles, solo rescatables via CSV) con
+  tag "En progreso" y boton borrar (confirmacion en dos pasos,
+  `db.deleteSession`). El grafico de tendencia y el foco sugerido siguen
+  usando solo las sesiones finalizadas.
+- **Acerca de**: `screens/about.js`, accesible desde un link al pie del home.
+- **Safe area**: `.gc-header` y `.gc-sea-banner` usan
+  `env(safe-area-inset-top)` (Dynamic Island/notch) y el body
+  `env(safe-area-inset-bottom)` (home indicator) - necesario corriendo como
+  PWA instalada a pantalla completa.
 
 ## Desarrollo
 
@@ -84,12 +110,13 @@ src/
   stats.js               # computeStats + suggestFocus (foco sugerido)
   csv.js                 # export a CSV
   db.js                   # capa de persistencia (IndexedDB)
+  confirmDiscard.js        # boton "Cancelar sesion" compartido (2 pasos)
   styles.css
   tempo/
     engine.js            # motor de audio del Tempo Trainer (Web Audio API)
   screens/
     home.js, sessionShots.js, sessionBlocks.js, summary.js, history.js,
-    warmupSelect.js, warmupSession.js, tempo.js
+    warmupSelect.js, warmupSession.js, tempo.js, about.js
 scripts/
   generate-icons.mjs    # genera los PNG del icono desde src/icon.svg
 public/icons/           # iconos PWA generados (no editar a mano)

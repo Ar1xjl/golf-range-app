@@ -1,5 +1,7 @@
 // Pantalla de sesion por bloque (variante D: putting semanal). Portado desde el prototipo.
 
+import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
+
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
 }
@@ -34,6 +36,7 @@ export function renderBlockSession(ctx) {
       cardsHtml +
       '<button class="gc-btn gc-btn-primary" id="gc-finish-d-btn">Finalizar sesion</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      cancelRowHtml(state) +
     '</div>';
 
   document.querySelectorAll('.gc-d-input, .gc-d-textarea').forEach((el) => {
@@ -66,6 +69,10 @@ export function renderBlockSession(ctx) {
   document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
   document.getElementById('gc-exit-d-btn').onclick = async () => {
     await persistCurrentSession(false);
+    state.confirmingCancel = false;
     state.screen = 'home'; state.session = null; render();
   };
+  wireCancelRow(state, render, () => {
+    state.screen = 'home'; state.session = null; render();
+  });
 }

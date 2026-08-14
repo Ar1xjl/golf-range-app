@@ -63,6 +63,20 @@ export async function countForVariant(variantKey) {
   return all.length;
 }
 
+// Todas las sesiones de la variante, finalizadas o no (para el historial
+// con borrado - a diferencia de loadAllForVariant, que solo trae las
+// finalizadas para no ensuciar el grafico de tendencia ni el foco sugerido).
+export async function getAllSessionsForVariant(variantKey) {
+  const db = await dbPromise;
+  const all = await db.getAllFromIndex(STORE_SESSIONS, 'variant', variantKey);
+  return all.sort((a, b) => a.id - b.id);
+}
+
+export async function deleteSession(id) {
+  const db = await dbPromise;
+  await db.delete(STORE_SESSIONS, id);
+}
+
 // ---------- Warm-ups pre-ronda ----------
 
 export async function saveWarmup(warmup) {

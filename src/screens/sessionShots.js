@@ -1,6 +1,7 @@
 // Pantalla de sesion tiro-a-tiro (variantes A, B, C, E). Portado desde el prototipo.
 
 import { flatten } from '../variants.js';
+import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -67,6 +68,7 @@ export function renderShotSession(ctx) {
         '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-next-btn">' + (i === flat.length - 1 ? 'Finalizar' : 'Siguiente') + '</button>' +
       '</div>' +
       '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Guardar y salir</button>' +
+      cancelRowHtml(state) +
     '</div>';
 
   document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(state.session, shot); render(); };
@@ -89,6 +91,10 @@ export function renderShotSession(ctx) {
   };
   document.getElementById('gc-exit-btn').onclick = async () => {
     await persistCurrentSession(false);
+    state.confirmingCancel = false;
     state.screen = 'home'; state.session = null; render();
   };
+  wireCancelRow(state, render, () => {
+    state.screen = 'home'; state.session = null; render();
+  });
 }

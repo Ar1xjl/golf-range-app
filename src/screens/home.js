@@ -59,6 +59,9 @@ export async function renderHome(ctx) {
       '</div>' +
       (sessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + sessions.length + ')</button>' : '') +
       (fullSessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-btn" style="margin-top:10px;">Exportar todo a CSV</button>' : '') +
+      '<div style="text-align:center; margin-top:22px;">' +
+        '<button class="gc-nav-back" id="gc-about-btn" style="color:var(--ink-soft); margin-bottom:0;">Acerca de esta app</button>' +
+      '</div>' +
     '</div>';
 
   document.getElementById('gc-warmup-entry').onclick = () => { state.screen = 'warmup-select'; render(); };
@@ -78,6 +81,7 @@ export async function renderHome(ctx) {
     state.session.finished = false;
     state.session.sessionNumber = (await db.countForVariant(state.selectedVariant)) + 1;
     state.currentFlatIndex = 0;
+    state.confirmingCancel = false;
     state.screen = 'session';
     render();
   };
@@ -85,4 +89,5 @@ export async function renderHome(ctx) {
   if (histBtn) histBtn.onclick = () => { state.screen = 'history'; render(); };
   const exportBtn = document.getElementById('gc-export-btn');
   if (exportBtn) exportBtn.onclick = () => exportCSV(null);
+  document.getElementById('gc-about-btn').onclick = () => { state.screen = 'about'; render(); };
 }

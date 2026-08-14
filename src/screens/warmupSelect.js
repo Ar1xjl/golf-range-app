@@ -53,6 +53,7 @@ export async function renderWarmupSelect(ctx) {
       blockEnteredAt: now,
       startedAt: now,
     };
+    state.confirmingCancel = false;
     state.screen = 'warmup-session';
     render();
   };

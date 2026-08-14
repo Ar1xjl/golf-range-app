@@ -34,12 +34,13 @@ import { renderHistory } from './screens/history.js';
 import { renderWarmupSelect } from './screens/warmupSelect.js';
 import { renderWarmupSession, renderWarmupDone, cleanupWarmupTicking } from './screens/warmupSession.js';
 import { renderTempo, cleanupTempo } from './screens/tempo.js';
+import { renderAbout } from './screens/about.js';
 
 const APP = document.getElementById('gc-app');
 
 const state = {
   screen: 'home', session: null, selectedVariant: 'C', currentFlatIndex: 0, loading: true,
-  warmupSelected: '20', warmupSession: null, returnScreen: null,
+  warmupSelected: '20', warmupSession: null, returnScreen: null, confirmingCancel: false,
 };
 
 async function persistCurrentSession(finished) {
@@ -89,6 +90,7 @@ function render() {
   if (state.screen === 'warmup-session') return renderWarmupSession(ctx);
   if (state.screen === 'warmup-done') return renderWarmupDone(ctx);
   if (state.screen === 'tempo') return renderTempo(ctx);
+  if (state.screen === 'about') return renderAbout(ctx);
 }
 
 // ---------- Init ----------
