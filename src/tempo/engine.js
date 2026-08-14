@@ -250,7 +250,10 @@ export function createTempoEngine(initial) {
   }
 
   function scheduleCycle() {
-    const t = TEMPOS[currentTempo];
+    // Fallback defensivo: si currentTempo llegara con una clave invalida
+    // (dato viejo persistido con un esquema anterior, por ejemplo), esto
+    // evita romper en silencio en vez de sonar con un preset razonable.
+    const t = TEMPOS[currentTempo] || TEMPOS['pro-medium'];
     const lookahead = 0.05;
     const t0 = audioCtx.currentTime + lookahead;
     const tTop = t0 + t.back;
@@ -365,7 +368,7 @@ export function createTempoEngine(initial) {
   function setDynamics(v) { dynamics = v; }
 
   function isPlaying() { return playing; }
-  function getTempoPreset(tempo) { return TEMPOS[tempo || currentTempo]; }
+  function getTempoPreset(tempo) { return TEMPOS[tempo || currentTempo] || TEMPOS['pro-medium']; }
   function getCycleTiming() { return { cycleStartPerf, cycleDurationMs }; }
 
   return {

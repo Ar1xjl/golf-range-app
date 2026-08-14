@@ -45,9 +45,17 @@ async function loadPrefs(db) {
   ENGINES.forEach((k) => {
     perEngine[k] = { ...DEFAULT_PER_ENGINE[k], ...((saved && saved.perEngine && saved.perEngine[k]) || {}) };
   });
+  // Valida contra las claves vigentes: alguien que probo la app antes de
+  // los presets Garmin (o antes del rename Sintetico/Organo -> GolfSaber/
+  // Relax) puede tener guardado un tempo/soundMode que ya no existe
+  // ('medio', 'starwars', 'organ'...). Sin este chequeo, TEMPOS[tempo] o
+  // perEngine[soundMode] da undefined y el motor tira una excepcion en
+  // silencio apenas se toca Reproducir - el boton no hace nada visible.
+  const tempo = TEMPO_ORDER.includes(saved && saved.tempo) ? saved.tempo : DEFAULT_PREFS.tempo;
+  const soundMode = ENGINES.includes(saved && saved.soundMode) ? saved.soundMode : DEFAULT_PREFS.soundMode;
   return {
-    tempo: (saved && saved.tempo) || DEFAULT_PREFS.tempo,
-    soundMode: (saved && saved.soundMode) || DEFAULT_PREFS.soundMode,
+    tempo,
+    soundMode,
     tickEnabled: !!(saved && saved.tickEnabled),
     perEngine,
   };
