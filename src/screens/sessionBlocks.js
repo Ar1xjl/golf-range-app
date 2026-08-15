@@ -8,9 +8,10 @@ function seaBanner(session) {
 }
 
 export function renderBlockSession(ctx) {
-  const { APP, state, render, persistCurrentSession, finishSession } = ctx;
+  const { APP, state, render, db, persistCurrentSession, startCurrentSession, finishSession, VARIANT_DEFS } = ctx;
   ensureSessionWakeLock();
   const session = state.session;
+  const started = !!session.id;
   const cardsHtml = session.blocks.map((b, bi) => {
     const segRow = (field, current) => '<div class="gc-seg-row" data-field="' + field + '" data-block="' + bi + '">' +
       ['Si', 'Parcial', 'No'].map((opt) => '<div class="gc-seg-btn ' + (current === opt ? 'sel' : '') + '" data-val="' + opt + '">' + opt + '</div>').join('') + '</div>';
@@ -36,10 +37,15 @@ export function renderBlockSession(ctx) {
     seaBanner(session) +
     '<div class="gc-body" style="padding-top:16px;">' +
       cardsHtml +
-      '<button class="gc-btn gc-btn-primary" id="gc-finish-d-btn">Finalizar sesion</button>' +
+      (started ? '<button class="gc-btn gc-btn-primary" id="gc-finish-d-btn">Finalizar sesion</button>' : '') +
       '<button class="gc-btn gc-btn-ghost" id="gc-session-tempo-btn" style="margin-top:8px;">🎧 Tempo Trainer</button>' +
-      '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Pausar y salir</button>' +
-      cancelRowHtml(state) +
+      (started
+        ? '<button class="gc-btn gc-btn-ghost" id="gc-exit-d-btn" style="margin-top:8px;">Pausar y salir</button>' +
+          '<button class="gc-btn gc-btn-ghost" id="gc-restart-btn" style="margin-top:8px;">Empezar una sesion nueva</button>' +
+          cancelRowHtml(state)
+        : '<div class="gc-not-started-hint">Todavia no iniciaste esta sesion — mira los bloques y arranca cuando quieras.</div>' +
+          '<button class="gc-btn gc-btn-primary" id="gc-init-btn" style="margin-top:8px;">Iniciar</button>' +
+          '<button class="gc-btn gc-btn-ghost" id="gc-back-btn" style="margin-top:8px;">Volver atras</button>') +
     '</div>';
 
   document.querySelectorAll('.gc-d-input, .gc-d-textarea').forEach((el) => {
@@ -69,18 +75,36 @@ export function renderBlockSession(ctx) {
       };
     });
   });
-  document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
   document.getElementById('gc-session-tempo-btn').onclick = () => {
     state.returnScreen = 'session';
     state.screen = 'tempo';
     render();
   };
-  document.getElementById('gc-exit-d-btn').onclick = async () => {
-    await persistCurrentSession(false);
-    state.confirmingCancel = false;
-    state.screen = 'home'; state.session = null; render();
-  };
-  wireCancelRow(state, render, () => {
-    state.screen = 'home'; state.session = null; render();
-  });
+  if (started) {
+    document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
+    document.getElementById('gc-exit-d-btn').onclick = async () => {
+      await persistCurrentSession(false);
+      state.confirmingCancel = false;
+      state.screen = 'home'; state.session = null; render();
+    };
+    document.getElementById('gc-restart-btn').onclick = () => {
+      state.session = VARIANT_DEFS[session.key].factory();
+      state.confirmingCancel = false;
+      render();
+    };
+    wireCancelRow(state, render, async () => {
+      // Ya esta persistida desde que se toco "Iniciar" - sin este delete
+      // quedaba huerfana en la base (0 bloques, "en progreso" para siempre).
+      await db.deleteSession(state.session.id);
+      state.screen = 'home'; state.session = null; render();
+    });
+  } else {
+    document.getElementById('gc-init-btn').onclick = async () => {
+      await startCurrentSession();
+      render();
+    };
+    document.getElementById('gc-back-btn').onclick = () => {
+      state.screen = 'home'; state.session = null; render();
+    };
+  }
 }

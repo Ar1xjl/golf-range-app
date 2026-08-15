@@ -84,17 +84,31 @@ Detalles de arquitectura no obvios:
 
 ## Otras piezas
 
-- **Retomar sesion**: "Guardar y salir" paso a llamarse "Pausar y salir" -
-  ahora es literal: si la variante seleccionada tiene una sesion sin
-  terminar, el home ofrece "Continuar sesion (progreso)" en vez de
-  "Empezar sesion" (salta al primer tiro sin responder via
-  `firstIncompleteFlatIndex` en `variants.js`), con "Empezar una sesion
-  nueva" como opcion secundaria.
+- **Explorar antes de iniciar**: tocar una variante en el home ya no pasa
+  por un boton "Empezar sesion" separado - va directo a la pantalla de esa
+  sesion. Si hay una sin terminar para esa variante, la retoma ahi mismo
+  (salta al primer tiro sin responder via `firstIncompleteFlatIndex` en
+  `variants.js`); si no, arma una sesion nueva **en memoria, sin
+  persistir** (`VARIANT_DEFS[key].factory()`, sin `id`/`date`) para poder
+  navegarla con Anterior/Siguiente antes de comprometerse. `!state.session.id`
+  es la señal que usan `sessionShots.js`/`sessionBlocks.js` para saber si
+  mostrar el hint + boton "Iniciar" + "Volver atras" (modo explorar) o
+  "Pausar y salir" + "Empezar una sesion nueva" + "Cancelar sesion" (modo
+  iniciado). `startCurrentSession()` en `main.js` es lo unico que le pone
+  `id`/`date`/`sessionNumber` y la guarda por primera vez - se llama al
+  tocar "Iniciar" (y defensivamente desde `finishSession()` por si algun
+  camino raro llega a Finalizar sin haber iniciado). "Empezar una sesion
+  nueva" (solo visible ya iniciada) arma otra exploracion desde cero sin
+  tocar la sesion pausada, que sigue guardada y visible en el Historial.
 - **Cancelar sesion**: en las 3 pantallas de sesion (tiro-a-tiro, bloques,
   warm-up) hay un boton "Cancelar sesion" (`src/confirmDiscard.js`, dos
-  pasos de confirmacion) que descarta sin escribir nada en IndexedDB -
-  distinto de "Pausar y salir", que persiste como `finished:false` (y ahora
-  se puede retomar).
+  pasos de confirmacion) que descarta sin dejar nada guardado - distinto de
+  "Pausar y salir", que persiste como `finished:false` (y se puede
+  retomar). Solo aparece en modo iniciado (si la sesion todavia se esta
+  explorando, "Volver atras" ya alcanza porque no hay nada persistido); como
+  en ese punto la sesion ya tiene `id` (se guardo al tocar "Iniciar"),
+  descartar tambien borra ese registro (`db.deleteSession`) para no dejarlo
+  huerfano en IndexedDB.
 - **Wake Lock**: la pantalla no se apaga sola durante una sesion de
   practica, un warm-up, o mientras suena el Tempo Trainer
   (`src/wakeLock.js`, factory `createWakeLockHandle()` - cada feature tiene

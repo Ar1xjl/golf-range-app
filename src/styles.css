@@ -211,6 +211,11 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
 }
 #gc-app .gc-hist-del-btn.confirm-yes { color: #fff; background: var(--brick); border-radius: 6px; }
 
+#gc-app .gc-not-started-hint {
+  text-align: center; font-size: 12px; color: var(--ink-soft);
+  margin-top: 10px; line-height: 1.4;
+}
+
 #gc-app .gc-variant-pill {
   display: flex; justify-content: space-between; align-items: center;
   border: 1.5px solid var(--line); border-radius: 12px;

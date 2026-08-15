@@ -53,7 +53,25 @@ async function persistCurrentSession(finished) {
   await db.saveSession(state.session);
 }
 
+// Recien aca la sesion pasa de "explorando" (armada en memoria por
+// home.js, sin id/fecha, nunca guardada) a real: le pone id/fecha/numero
+// y la persiste por primera vez. Antes de esto, `!state.session.id` es la
+// señal que usan las pantallas de sesion para saber si mostrar
+// Volver atras/Iniciar o Pausar y salir/Cancelar sesion.
+async function startCurrentSession() {
+  if (!state.session || state.session.id) return;
+  state.session.id = Date.now();
+  state.session.date = new Date().toISOString();
+  state.session.finished = false;
+  state.session.sessionNumber = (await db.countForVariant(state.session.key)) + 1;
+  await db.saveSession(state.session);
+}
+
 async function finishSession() {
+  // Defensivo: si por algun camino se llega a Finalizar sin haber tocado
+  // Iniciar antes (no deberia pasar, la UI no deja), esto evita guardar
+  // una sesion "finalizada" sin id/fecha.
+  if (state.session && !state.session.id) await startCurrentSession();
   await persistCurrentSession(true);
   state.screen = 'summary';
   render();
@@ -61,7 +79,7 @@ async function finishSession() {
 
 const ctx = {
   APP, state, render, db, computeStats, suggestFocus, exportCSV,
-  VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, finishSession,
+  VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, startCurrentSession, finishSession,
 };
 
 // Algunas pantallas (el timer del warm-up, la sesion de practica) dejan

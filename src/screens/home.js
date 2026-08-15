@@ -1,14 +1,18 @@
 // Pantalla de inicio: elegir variante, ver ultima sesion, foco sugerido,
-// continuar una sesion sin terminar, o entrar al historial. Exportar CSV
-// y Acerca de viven en el menu (icono hamburguesa).
+// entrar al historial. Exportar CSV y Acerca de viven en el menu (icono
+// hamburguesa).
+//
+// Tocar una variante lleva DIRECTO a la pantalla de esa sesion (retomando
+// la sin terminar si existe, o armando una nueva en memoria para
+// explorarla antes de "Iniciar" - ver sessionShots.js/sessionBlocks.js).
+// Ya no hay un boton "Empezar sesion" separado en el home.
 
-import { sessionProgressLabel, firstIncompleteFlatIndex } from '../variants.js';
+import { firstIncompleteFlatIndex } from '../variants.js';
 
 export async function renderHome(ctx) {
   const { APP, state, render, db, computeStats, suggestFocus, VARIANT_DEFS, VARIANT_ORDER } = ctx;
   const sel = state.selectedVariant;
   const sessions = await db.loadAllForVariant(sel);
-  const unfinished = await db.getUnfinishedSessionForVariant(sel);
   const focus = suggestFocus(sessions);
   const last = sessions[sessions.length - 1];
   const lastStats = last ? computeStats(last) : null;
@@ -36,11 +40,6 @@ export async function renderHome(ctx) {
       '</div>';
   }).join('');
 
-  const startAreaHtml = unfinished
-    ? '<button class="gc-btn gc-btn-primary" id="gc-continue-btn" style="margin-top:6px;">Continuar sesion (' + sessionProgressLabel(unfinished) + ')</button>' +
-      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-start-new-btn" style="margin-top:8px;">Empezar una sesion nueva</button>'
-    : '<button class="gc-btn gc-btn-primary" id="gc-start-btn" style="margin-top:6px;">Empezar sesion</button>';
-
   const preRoundHtml =
     '<div class="gc-card">' +
       '<div class="gc-eyebrow" style="color:var(--green)">Antes de jugar</div>' +
@@ -64,7 +63,6 @@ export async function renderHome(ctx) {
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
         pillsHtml +
-        startAreaHtml +
       '</div>' +
       (sessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + sessions.length + ')</button>' : '') +
     '</div>';
@@ -77,32 +75,26 @@ export async function renderHome(ctx) {
   // jugar" de arriba, que comparten la misma clase gc-variant-pill por estilo
   // pero no tienen data-variant.
   document.querySelectorAll('.gc-variant-pill[data-variant]').forEach((el) => {
-    el.onclick = () => { state.selectedVariant = el.dataset.variant; render(); };
-  });
-  async function startNewSession() {
-    const factory = VARIANT_DEFS[state.selectedVariant].factory;
-    state.session = factory();
-    state.session.id = Date.now();
-    state.session.date = new Date().toISOString();
-    state.session.finished = false;
-    state.session.sessionNumber = (await db.countForVariant(state.selectedVariant)) + 1;
-    state.currentFlatIndex = 0;
-    state.confirmingCancel = false;
-    state.screen = 'session';
-    render();
-  }
-  if (unfinished) {
-    document.getElementById('gc-continue-btn').onclick = () => {
-      state.session = unfinished;
-      state.currentFlatIndex = unfinished.type === 'blocks' ? 0 : firstIncompleteFlatIndex(unfinished);
+    el.onclick = async () => {
+      const key = el.dataset.variant;
+      state.selectedVariant = key;
+      const unfinished = await db.getUnfinishedSessionForVariant(key);
+      if (unfinished) {
+        // Ya esta en curso: retoma directo, sin pasar por "explorar".
+        state.session = unfinished;
+        state.currentFlatIndex = unfinished.type === 'blocks' ? 0 : firstIncompleteFlatIndex(unfinished);
+      } else {
+        // Nueva: se arma en memoria sin id/fecha (sin guardar todavia) -
+        // recien se persiste cuando se toca "Iniciar" en la pantalla de
+        // sesion. Hasta entonces es solo explorar con Anterior/Siguiente.
+        state.session = VARIANT_DEFS[key].factory();
+        state.currentFlatIndex = 0;
+      }
       state.confirmingCancel = false;
       state.screen = 'session';
       render();
     };
-    document.getElementById('gc-start-new-btn').onclick = startNewSession;
-  } else {
-    document.getElementById('gc-start-btn').onclick = startNewSession;
-  }
+  });
   const histBtn = document.getElementById('gc-hist-btn');
   if (histBtn) histBtn.onclick = () => { state.screen = 'history'; render(); };
 }

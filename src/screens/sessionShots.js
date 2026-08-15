@@ -22,8 +22,9 @@ function syncShot(session, shot) {
 }
 
 export function renderShotSession(ctx) {
-  const { APP, state, render, persistCurrentSession, finishSession } = ctx;
+  const { APP, state, render, db, persistCurrentSession, startCurrentSession, finishSession, VARIANT_DEFS } = ctx;
   ensureSessionWakeLock();
+  const started = !!state.session.id;
   const flat = flatten(state.session);
   const i = state.currentFlatIndex;
   const shot = flat[i];
@@ -70,8 +71,13 @@ export function renderShotSession(ctx) {
         '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-next-btn">' + (i === flat.length - 1 ? 'Finalizar' : 'Siguiente') + '</button>' +
       '</div>' +
       '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-session-tempo-btn" style="margin-top:8px;">🎧 Tempo Trainer</button>' +
-      '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Pausar y salir</button>' +
-      cancelRowHtml(state) +
+      (started
+        ? '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-exit-btn" style="margin-top:8px;">Pausar y salir</button>' +
+          '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-restart-btn" style="margin-top:8px;">Empezar una sesion nueva</button>' +
+          cancelRowHtml(state)
+        : '<div class="gc-not-started-hint">Todavia no iniciaste esta sesion — explora con Anterior/Siguiente y arranca cuando quieras.</div>' +
+          '<button class="gc-btn gc-btn-primary gc-btn-sm" id="gc-init-btn" style="margin-top:8px;">Iniciar</button>' +
+          '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-back-btn" style="margin-top:8px;">Volver atras</button>') +
     '</div>';
 
   document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(state.session, shot); render(); };
@@ -97,12 +103,33 @@ export function renderShotSession(ctx) {
     state.screen = 'tempo';
     render();
   };
-  document.getElementById('gc-exit-btn').onclick = async () => {
-    await persistCurrentSession(false);
-    state.confirmingCancel = false;
-    state.screen = 'home'; state.session = null; render();
-  };
-  wireCancelRow(state, render, () => {
-    state.screen = 'home'; state.session = null; render();
-  });
+  if (started) {
+    document.getElementById('gc-exit-btn').onclick = async () => {
+      await persistCurrentSession(false);
+      state.confirmingCancel = false;
+      state.screen = 'home'; state.session = null; render();
+    };
+    document.getElementById('gc-restart-btn').onclick = () => {
+      // La sesion en curso/pausada queda como esta (guardada, visible en el
+      // Historial) - esto solo arma una exploracion nueva desde cero.
+      state.session = VARIANT_DEFS[state.session.key].factory();
+      state.currentFlatIndex = 0;
+      state.confirmingCancel = false;
+      render();
+    };
+    wireCancelRow(state, render, async () => {
+      // Ya esta persistida desde que se toco "Iniciar" - sin este delete
+      // quedaba huerfana en la base (0 tiros, "en progreso" para siempre).
+      await db.deleteSession(state.session.id);
+      state.screen = 'home'; state.session = null; render();
+    });
+  } else {
+    document.getElementById('gc-init-btn').onclick = async () => {
+      await startCurrentSession();
+      render();
+    };
+    document.getElementById('gc-back-btn').onclick = () => {
+      state.screen = 'home'; state.session = null; render();
+    };
+  }
 }
