@@ -167,8 +167,8 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
 
 #gc-app .gc-club-tag {
   display: inline-block; background: var(--gold-soft); color: var(--green-deep);
-  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
-  padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600;
+  padding: 5px 12px; border-radius: 999px; margin-bottom: 8px;
 }
 
 #gc-app .gc-shotnum {

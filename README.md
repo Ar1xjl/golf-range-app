@@ -155,6 +155,14 @@ Detalles de arquitectura no obvios:
   - colapsa preservando el orden, no hay forma de mapear 5 niveles a 3 sin
   perder resolucion).
 
+- **Driver con tiros "sueltos"**: en Variante E, el bloque "Driver:
+  precision de fairway" intercala 1 de cada 4 tiros como "Suelto - buscá tu
+  velocidad maxima, sin preocuparte por la linea" (`buildAlternatingSituations`
+  con 4 entradas: 3 controladas + 1 suelta, se repite el ciclo). Practicar
+  siempre tentativo entrena un swing "steering" que no ayuda en la cancha;
+  soltarse cada tanto libera tension. Mismo patron ya usado en el
+  Calentamiento de Variante C ("Foco en soltar el swing").
+
 ## Desarrollo
 
 ```bash

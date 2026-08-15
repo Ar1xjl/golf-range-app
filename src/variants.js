@@ -96,7 +96,19 @@ function freshVariantE() {
     key: 'E', type: 'shots', name: 'Drive y recuperacion',
     blocks: [
       { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(6, 'Activacion, sin objetivo de resultado', 'PW / 9H', '-') },
-      { name: 'Driver: precision de fairway', shortLabel: 'Driver', shots: buildShots(16, 'Blanco angosto, tempo relajado, no buscar distancia maxima', 'Driver', 'Fairway') },
+      // 1 de cada 4 tiros es "suelto" (maximo esfuerzo, sin cuidar la linea),
+      // intercalado entre los de precision - no todo el bloque en fila.
+      // Practicar SIEMPRE con cuidado/tentativo entrena un swing "steering"
+      // que no ayuda en la cancha (Bob Rotella, "Golf is Not a Game of
+      // Perfect": swings tentativos generan mas errores que confiar en el
+      // swing completo); soltarse cada tanto tambien libera tension y evita
+      // perder velocidad de cabeza de palo por exceso de control.
+      { name: 'Driver: precision de fairway', shortLabel: 'Driver', shots: buildAlternatingSituations([
+        ['Blanco angosto, tempo relajado, no buscar distancia maxima', 'Driver', 'Fairway'],
+        ['Blanco angosto, tempo relajado, no buscar distancia maxima', 'Driver', 'Fairway'],
+        ['Blanco angosto, tempo relajado, no buscar distancia maxima', 'Driver', 'Fairway'],
+        ['Suelto - buscá tu velocidad maxima, sin preocuparte por la linea', 'Driver', 'Libre'],
+      ], 16) },
       { name: 'Recuperacion (54-Shot Challenge)', shortLabel: 'Recuperacion', shots: buildSituational([
         ['Situacion 1: rough / pelota tapada - salir limpio', 'Hibrido 3 (19°)', 'Zona approach', 5],
         ['Situacion 2: obstaculo adelante - pegar bajo', 'Hierro medio', 'Pasar bajo', 5],
