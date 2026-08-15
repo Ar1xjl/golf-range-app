@@ -126,8 +126,38 @@ Detalles de arquitectura no obvios:
   sesiones totales, tiros/putts, racha de semanas seguidas, dias desde la
   ultima, Think/Play Box global (promedio ponderado por tamaño de sesion,
   no promedio simple de porcentajes), tendencia de resultado promedio, y
-  un resumen por variante. Complementa al Historial (que sigue siendo el
+  6 analisis cruzados. Complementa al Historial (que sigue siendo el
   detalle sesion-por-sesion de UNA variante), no lo reemplaza.
+  - `reportsStats.js` (agregaciones sobre TODO el historial - distinto de
+    `stats.js`, que es "una sesion a la vez") + `screens/reportsCharts.js`
+    (renderers): **gapping por palo** (agrupado por `club+target`, no solo
+    club - en Variante A el mismo 56° se usa para dos objetivos de
+    distancia distinta, agrupar solo por palo mezclaria dos tiros bien
+    ejecutados en una barra que parece "muy dispersa" sin serlo); **rutina
+    vs. resultado** (scatter por bloque, con regresion lineal simple solo a
+    partir de 8 puntos); **tendencia por bloque** en TODO el historial (a
+    diferencia del foco sugerido del home, que solo mira las ultimas 3
+    sesiones); **fatiga por tercios** (tiros divididos por posicion
+    cronologica dentro de la sesion - asume que se completa en secuencia,
+    no hay timestamp por tiro - cruzando resultado% con rutina% para ver
+    cual cae primero); **comparacion entre variantes**; y **circulo de 3
+    pies vs. resultado** en Variante D. El resultado (escala 1-3) se
+    normaliza a % (`/RESULT_MAX*100`) en los graficos que lo cruzan con
+    otro porcentaje, para no terminar con un grafico de doble eje.
+  - Sin libreria de graficos nueva: barras en HTML/CSS (mas simple que
+    calcular geometria SVG para algo que ya resuelve bien flexbox),
+    SVG a mano para lineas/scatter - mismo patron que ya usaba el trend
+    chart original.
+  - Paleta categorica de los graficos: `--chart-green/--chart-gold/
+    --chart-blue/--chart-plum` en `styles.css`, separada de `--green`/
+    `--gold` de la UI porque esos son mas oscuros/de menor croma de lo que
+    conviene para series de un grafico. Los 4 tonos se validaron con el
+    validador de paletas categoricas de la skill `dataviz` (banda de
+    luminosidad, piso de croma, separacion CVD adyacente y de vision
+    normal) entre si y contra el fondo de las cards. No se reusa `--brick`
+    (ya es el color de "peligro" en el resto de la app - Cancelar, Borrar)
+    como cuarto color de serie. Asignacion de color siempre por indice fijo
+    de bloque/serie, nunca por nombre.
 - **Safe area**: `.gc-header` y `.gc-sea-banner` usan
   `env(safe-area-inset-top)` (Dynamic Island/notch) y el body
   `env(safe-area-inset-bottom)` (home indicator) - necesario corriendo como

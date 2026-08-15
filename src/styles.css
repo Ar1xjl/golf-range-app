@@ -17,6 +17,20 @@
   --brick: #A94B41;
   --line: #DCD3BC;
 
+  /* Paleta categorica para los graficos de Reportes (screens/reportsCharts.js).
+     Separada de --green/--gold de la UI porque esos son mas oscuros/de menor
+     croma de lo que un validador de accesibilidad de graficos categoricos
+     pide (ver dataviz skill) - estos 4 tonos pasan los 6 checks (banda de
+     luminosidad, piso de croma, separacion CVD adyacente y de vision normal)
+     entre si y contra --bg-card. --chart-gold reusa el --gold de la UI
+     (ya pasaba). No se reusa --brick como 4to color: ya es el color de
+     "peligro" (Cancelar, Borrar) en el resto de la app - mezclarlo en un
+     grafico como "un bloque mas" leeria como una alerta que no es. */
+  --chart-green: #3F7A46;
+  --chart-gold: var(--gold);
+  --chart-blue: #1C7FB0;
+  --chart-plum: #8B3F82;
+
   font-family: 'Inter', sans-serif;
   color: var(--ink);
   background: var(--bg);
@@ -421,3 +435,56 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .gc-mini-dot { animation: none; }
 }
+
+/* ---------- Graficos de Reportes (screens/reportsCharts.js) ---------- */
+#gc-app .gc-chart-empty {
+  font-size: 12px; color: var(--ink-soft); padding: 10px 0; line-height: 1.5;
+}
+#gc-app .gc-chart-note {
+  font-size: 11px; color: var(--ink-soft); margin-top: 6px;
+}
+#gc-app .gc-chart-legend {
+  display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 10px;
+  font-size: 11.5px; color: var(--ink-soft);
+}
+#gc-app .gc-chart-legend-item { display: flex; align-items: center; gap: 5px; }
+#gc-app .gc-chart-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* P1: gapping por palo - barra horizontal (promedio, solida) con el rango
+   min-max como banda mas clara detras, mismo tono. */
+#gc-app .gc-gap-row { margin-bottom: 16px; }
+#gc-app .gc-gap-row:last-child { margin-bottom: 0; }
+#gc-app .gc-gap-label { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+#gc-app .gc-gap-track {
+  position: relative; height: 16px; background: var(--bg); border-radius: 8px; overflow: hidden;
+}
+#gc-app .gc-gap-range { position: absolute; top: 0; bottom: 0; background: var(--chart-green); opacity: 0.18; }
+#gc-app .gc-gap-bar {
+  position: absolute; top: 0; bottom: 0; left: 0; background: var(--chart-green);
+  border-radius: 8px 4px 4px 8px;
+}
+#gc-app .gc-gap-value {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink); margin-top: 4px;
+}
+
+/* P4/P5: barras agrupadas (fatiga por tercios, comparacion de variantes) */
+#gc-app .gc-grp-chart { display: flex; justify-content: space-around; align-items: flex-end; margin-top: 4px; gap: 6px; }
+#gc-app .gc-grp-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+#gc-app .gc-grp-bars { display: flex; align-items: flex-end; gap: 4px; }
+#gc-app .gc-grp-bar-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+#gc-app .gc-grp-bar-val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-soft); margin-bottom: 3px;
+}
+#gc-app .gc-grp-bar { width: 18px; border-radius: 4px 4px 0 0; }
+#gc-app .gc-grp-label {
+  font-size: 10.5px; color: var(--ink-soft); margin-top: 6px; text-align: center; line-height: 1.3;
+}
+
+/* Filtro de variante compartido por las cards de Reportes que lo admiten -
+   mismo look que los pills del home, en miniatura. */
+#gc-app .gc-report-filter { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+#gc-app .gc-report-filter-btn {
+  border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 12px;
+  font-size: 12px; font-weight: 600; background: #fff; color: var(--ink); cursor: pointer;
+}
+#gc-app .gc-report-filter-btn.sel { background: var(--green); color: #fff; border-color: var(--green); }
