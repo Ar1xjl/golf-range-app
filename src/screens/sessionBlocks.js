@@ -2,6 +2,7 @@
 
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 import { ensureSessionWakeLock } from '../sessionWakeLock.js';
+import { RESULT_LEVELS } from '../resultScale.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -15,8 +16,8 @@ export function renderBlockSession(ctx) {
   const cardsHtml = session.blocks.map((b, bi) => {
     const segRow = (field, current) => '<div class="gc-seg-row" data-field="' + field + '" data-block="' + bi + '">' +
       ['Si', 'Parcial', 'No'].map((opt) => '<div class="gc-seg-btn ' + (current === opt ? 'sel' : '') + '" data-val="' + opt + '">' + opt + '</div>').join('') + '</div>';
-    const resultRow = '<div class="gc-result-row" data-field="resultado" data-block="' + bi + '">' +
-      [1, 2, 3, 4, 5].map((n) => '<div class="gc-result-peg ' + (b.resultado === n ? 'sel' : '') + '" data-n="' + n + '">' + n + '</div>').join('') + '</div>';
+    const resultRow = '<div class="gc-result-seg-row" data-field="resultado" data-block="' + bi + '">' +
+      RESULT_LEVELS.map((l) => '<div class="gc-result-seg-btn ' + (b.resultado === l.value ? 'sel' : '') + '" data-n="' + l.value + '">' + l.label + '</div>').join('') + '</div>';
 
     return '<div class="gc-card">' +
       '<div class="gc-eyebrow" style="color:var(--green)">' + b.name + '</div>' +
@@ -25,7 +26,7 @@ export function renderBlockSession(ctx) {
       '<input type="number" class="gc-d-input" data-field="cantidadReal" data-block="' + bi + '" value="' + (b.cantidadReal != null ? b.cantidadReal : b.cantidadSugerida) + '" />' +
       '<div class="gc-toggle-label" style="margin-top:12px;">Think Box</div>' + segRow('thinkBox', b.thinkBox) +
       '<div class="gc-toggle-label" style="margin-top:10px;">Play Box</div>' + segRow('playBox', b.playBox) +
-      '<div class="gc-toggle-label" style="margin-top:10px;">Resultado promedio (1-5)</div>' + resultRow +
+      '<div class="gc-toggle-label" style="margin-top:10px;">Resultado promedio</div>' + resultRow +
       '<div class="gc-toggle-label" style="margin-top:10px;">% en circulo de 3 pies</div>' +
       '<input type="number" min="0" max="100" class="gc-d-input" data-field="pctCirculo" data-block="' + bi + '" placeholder="0-100" value="' + (b.pctCirculo != null ? b.pctCirculo : '') + '" />' +
       '<div class="gc-toggle-label" style="margin-top:10px;">Notas</div>' +
@@ -66,8 +67,8 @@ export function renderBlockSession(ctx) {
       };
     });
   });
-  document.querySelectorAll('.gc-result-row').forEach((row) => {
-    row.querySelectorAll('.gc-result-peg').forEach((peg) => {
+  document.querySelectorAll('.gc-result-seg-row').forEach((row) => {
+    row.querySelectorAll('.gc-result-seg-btn').forEach((peg) => {
       peg.onclick = () => {
         const bi = parseInt(row.dataset.block, 10);
         session.blocks[bi].resultado = parseInt(peg.dataset.n, 10);

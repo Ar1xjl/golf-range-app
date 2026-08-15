@@ -4,6 +4,7 @@
 // variante; esto es el vistazo general. Accesible desde el menu.
 
 import { computeGlobalReport } from '../stats.js';
+import { RESULT_MAX } from '../resultScale.js';
 
 export async function renderReports(ctx) {
   const { APP, state, render, db, computeStats, VARIANT_DEFS, VARIANT_ORDER } = ctx;
@@ -30,12 +31,12 @@ export async function renderReports(ctx) {
     const w = 400, h = 90, pad = 10;
     const pts = vals.map((v, i) => {
       const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
-      const y = h - pad - (v / 5) * (h - 2 * pad);
+      const y = h - pad - (v / RESULT_MAX) * (h - 2 * pad);
       return x + ',' + y;
     }).join(' ');
     const dots = vals.map((v, i) => {
       const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
-      const y = h - pad - (v / 5) * (h - 2 * pad);
+      const y = h - pad - (v / RESULT_MAX) * (h - 2 * pad);
       return '<circle cx="' + x + '" cy="' + y + '" r="3" fill="#C79A3E"/>';
     }).join('');
     trendChart = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:90px;">' +
@@ -45,7 +46,7 @@ export async function renderReports(ctx) {
   const variantRowsHtml = variantRows.map((r) => {
     if (r.empty) return '<div class="gc-hist-row"><span>' + r.key + ' — ' + r.name + '</span><span class="gc-mono" style="color:var(--ink-soft);">sin datos</span></div>';
     const arrow = r.diff == null ? '' : (r.diff >= 0 ? ' ▲' : ' ▼');
-    return '<div class="gc-hist-row"><span>' + r.key + ' — ' + r.name + ' <span style="color:var(--ink-soft);">(' + r.count + ')</span></span><span class="gc-mono">' + r.avg.toFixed(1) + '/5' + arrow + '</span></div>';
+    return '<div class="gc-hist-row"><span>' + r.key + ' — ' + r.name + ' <span style="color:var(--ink-soft);">(' + r.count + ')</span></span><span class="gc-mono">' + r.avg.toFixed(1) + '/' + RESULT_MAX + arrow + '</span></div>';
   }).join('');
 
   APP.innerHTML =

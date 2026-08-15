@@ -88,6 +88,9 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
   border-radius: 14px;
   padding: 18px;
   margin-bottom: 14px;
+  /* Deja el scroll vertical nativo, pero no le compite al JS por el gesto
+     horizontal (swipe Anterior/Siguiente en sessionShots.js). */
+  touch-action: pan-y;
 }
 
 #gc-app .gc-btn {
@@ -140,17 +143,13 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
 }
 #gc-app .gc-toggle.on .gc-check { background: var(--green); border-color: var(--green); }
 
-#gc-app .gc-result-row { display: flex; gap: 8px; margin-top: 8px; }
-#gc-app .gc-result-peg {
-  flex: 1; aspect-ratio: 1; border-radius: 50%;
-  border: 2px solid var(--line);
-  background: #fff;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 600; font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--ink);
+#gc-app .gc-result-seg-row { display: flex; gap: 8px; margin-top: 8px; }
+#gc-app .gc-result-seg-btn {
+  flex: 1; text-align: center; padding: 12px 6px; border-radius: 10px;
+  border: 1.5px solid var(--line); font-size: 13px; font-weight: 600;
+  cursor: pointer; background: #fff; color: var(--ink);
 }
-#gc-app .gc-result-peg.sel { background: var(--gold); border-color: var(--gold); color: var(--green-deep); }
+#gc-app .gc-result-seg-btn.sel { background: var(--gold); color: var(--green-deep); border-color: var(--gold); }
 
 #gc-app .gc-seg-row { display: flex; gap: 8px; margin-top: 6px; }
 #gc-app .gc-seg-btn {

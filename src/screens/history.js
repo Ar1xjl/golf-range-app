@@ -5,6 +5,7 @@
 // finalizadas - una sesion a medias no deberia mover ese promedio.
 
 import { sessionProgressLabel } from '../variants.js';
+import { RESULT_MAX } from '../resultScale.js';
 
 // Solo puede haber una fila "confirmando borrado" a la vez. Vive fuera de
 // `state` porque es puramente UI efimera de esta pantalla, no algo que
@@ -25,12 +26,12 @@ export async function renderHistory(ctx) {
     const w = 400, h = 90, pad = 10;
     const pts = vals.map((v, i) => {
       const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
-      const y = h - pad - (v / 5) * (h - 2 * pad);
+      const y = h - pad - (v / RESULT_MAX) * (h - 2 * pad);
       return x + ',' + y;
     }).join(' ');
     const dots = vals.map((v, i) => {
       const x = pad + (i * (w - 2 * pad)) / (vals.length - 1);
-      const y = h - pad - (v / 5) * (h - 2 * pad);
+      const y = h - pad - (v / RESULT_MAX) * (h - 2 * pad);
       return '<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="#C79A3E"/>';
     }).join('');
     chart = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:90px;">' +
@@ -52,7 +53,7 @@ export async function renderHistory(ctx) {
       const d = new Date(s.date);
       const statusTag = s.finished ? '' : '<span class="gc-status-tag">En progreso</span>';
       const rightText = s.finished
-        ? computeStats(s).avgResultado.toFixed(1) + '/5 · TB ' + Math.round(computeStats(s).pctThink * 100) + '%'
+        ? computeStats(s).avgResultado.toFixed(1) + '/' + RESULT_MAX + ' · TB ' + Math.round(computeStats(s).pctThink * 100) + '%'
         : sessionProgressLabel(s);
       return '<div class="gc-hist-entry">' +
         '<div class="gc-hist-row"><span>' + d.toLocaleDateString('es-AR') + statusTag + '</span><span class="gc-mono">' + rightText + '</span></div>' +
@@ -69,7 +70,7 @@ export async function renderHistory(ctx) {
         (unfinishedCount ? ' (' + unfinishedCount + ' sin terminar)' : '') + '</div>' +
     '</div>' +
     '<div class="gc-body">' +
-      (focus ? '<div class="gc-focus-banner">Bloque a priorizar: <b>' + focus.name + '</b> (promedio ' + focus.avg.toFixed(1) + '/5 en las ultimas practicas)</div>' : '') +
+      (focus ? '<div class="gc-focus-banner">Bloque a priorizar: <b>' + focus.name + '</b> (promedio ' + focus.avg.toFixed(1) + '/' + RESULT_MAX + ' en las ultimas practicas)</div>' : '') +
       (finishedHistory.length > 1 ? '<div class="gc-card"><div class="gc-eyebrow" style="color:var(--green)">Resultado promedio por sesion</div>' + chart + '</div>' : '') +
       '<div class="gc-card">' + rowsHtml + '</div>' +
       (finishedHistory.length ? '<button class="gc-btn gc-btn-ghost" id="gc-export-var-btn">Exportar esta variante a CSV</button>' : '') +

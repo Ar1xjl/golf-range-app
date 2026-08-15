@@ -47,7 +47,8 @@ function freshVariantA() {
       { name: 'Calentamiento', shortLabel: 'Calentamiento', shots: buildShots(6, 'Activacion, sin objetivo de resultado', '56° / PW', '-') },
       { name: 'Precision por distancia', shortLabel: 'Precision', shots: buildAlternating(
         [['60°', '40 yds'], ['56°', '60 yds'], ['52°', '80 yds'], ['56°', '100 yds']], 24, 'Blanco especifico', true) },
-      { name: 'Control de trayectoria', shortLabel: 'Trayectoria', shots: buildShots(8, 'Alternar tiro alto y bajo/controlado', '56°', 'Alto vs bajo') },
+      { name: 'Control de trayectoria', shortLabel: 'Trayectoria', shots: buildAlternating(
+        [['56°', 'Tiro alto'], ['56°', 'Tiro bajo, controlado']], 8, 'Alternar la trayectoria golpe a golpe') },
       { name: 'Simulacion de presion (up-and-down)', shortLabel: 'Presion', shots: buildShots(12, 'Posicion variada, registrar si queda a 1 putt', '60/56/52°', 'Salvar par') },
     ],
   };

@@ -16,13 +16,37 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'golf-range-db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_SESSIONS = 'sessions';
 const STORE_WARMUPS = 'warmups';
 const STORE_SETTINGS = 'settings';
 
+// v2 -> v3: la escala de "resultado" (post-shot / por bloque) paso de 1-5 a
+// 3 niveles con nombre (Malo/Bueno/Excelente, ver resultScale.js) - la de 5
+// era demasiado ancha para aplicar consistente parado en el driving range.
+// Colapsa los valores viejos preservando el orden (no hay forma de mapear
+// 5 niveles a 3 sin perder resolucion, pero el orden relativo se mantiene):
+// 1,2 -> Malo(1) · 3,4 -> Bueno(2) · 5 -> Excelente(3).
+const RESULT_5_TO_3 = { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3 };
+
+function migrateResultScale(session) {
+  let changed = false;
+  const remapOne = (obj) => {
+    if (obj.resultado != null && RESULT_5_TO_3[obj.resultado] != null) {
+      obj.resultado = RESULT_5_TO_3[obj.resultado];
+      changed = true;
+    }
+  };
+  if (session.type === 'blocks') {
+    (session.blocks || []).forEach(remapOne);
+  } else {
+    (session.blocks || []).forEach((b) => (b.shots || []).forEach(remapOne));
+  }
+  return changed;
+}
+
 const dbPromise = openDB(DB_NAME, DB_VERSION, {
-  upgrade(db, oldVersion) {
+  async upgrade(db, oldVersion, newVersion, transaction) {
     if (oldVersion < 1) {
       const store = db.createObjectStore(STORE_SESSIONS, { keyPath: 'id' });
       store.createIndex('variant', 'key');
@@ -30,6 +54,15 @@ const dbPromise = openDB(DB_NAME, DB_VERSION, {
     if (oldVersion < 2) {
       db.createObjectStore(STORE_WARMUPS, { keyPath: 'id' });
       db.createObjectStore(STORE_SETTINGS, { keyPath: 'id' });
+    }
+    if (oldVersion < 3 && oldVersion > 0) {
+      const store = transaction.objectStore(STORE_SESSIONS);
+      let cursor = await store.openCursor();
+      while (cursor) {
+        const session = cursor.value;
+        if (migrateResultScale(session)) await cursor.update(session);
+        cursor = await cursor.continue();
+      }
     }
   },
 });

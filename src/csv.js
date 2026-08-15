@@ -1,5 +1,9 @@
 // Export a CSV, portado desde el prototipo. Ahora lee directo de IndexedDB
 // (getAllSessions) en vez de recorrer un indice + fetch por sesion.
+//
+// Columna "Resultado": 1-3 (Malo/Bueno/Excelente, ver resultScale.js). Las
+// sesiones guardadas antes de ese cambio se migraron de su escala 1-5
+// original a este 1-3 al abrir la app (db.js, v2 -> v3).
 
 import { getAllSessions } from './db.js';
 

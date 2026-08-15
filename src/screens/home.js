@@ -8,6 +8,7 @@
 // Ya no hay un boton "Empezar sesion" separado en el home.
 
 import { firstIncompleteFlatIndex } from '../variants.js';
+import { RESULT_MAX } from '../resultScale.js';
 
 export async function renderHome(ctx) {
   const { APP, state, render, db, computeStats, suggestFocus, VARIANT_DEFS, VARIANT_ORDER } = ctx;
@@ -20,7 +21,7 @@ export async function renderHome(ctx) {
   let focusHtml = '';
   if (focus) {
     focusHtml = '<div class="gc-focus-banner">Foco sugerido para la proxima sesion: <b>' + focus.name + '</b><br>' +
-      'es el bloque con menor resultado promedio en tus ultimas practicas (' + focus.avg.toFixed(1) + '/5).</div>';
+      'es el bloque con menor resultado promedio en tus ultimas practicas (' + focus.avg.toFixed(1) + '/' + RESULT_MAX + ').</div>';
   }
 
   let lastHtml = '';

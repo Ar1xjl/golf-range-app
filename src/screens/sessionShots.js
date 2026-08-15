@@ -3,6 +3,7 @@
 import { flatten } from '../variants.js';
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 import { ensureSessionWakeLock } from '../sessionWakeLock.js';
+import { RESULT_LEVELS } from '../resultScale.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -12,6 +13,38 @@ function blockStartIndex(session, blockIndex) {
   let n = 0;
   for (let b = 0; b < blockIndex; b++) n += session.blocks[b].shots.length;
   return n;
+}
+
+// Swipe izquierda/derecha en la tarjeta del tiro como alternativa a los
+// botones Anterior/Siguiente - la gente ya viene acostumbrada del gesto.
+// Pointer events (no touch events) para que ande igual con dedo y con
+// mouse (asi se puede probar arrastrando con left_click_drag). El listener
+// va en .gc-card, no en toda la pantalla, para no pisar el swipe/scroll de
+// otros elementos (block-nav, etc). Un tap normal sobre los toggles/pegs de
+// adentro no dispara nada porque no supera el umbral de movimiento.
+function wireCardSwipe() {
+  const card = document.querySelector('.gc-card');
+  if (!card) return;
+  const THRESHOLD = 50;
+  let startX = 0, startY = 0, tracking = false;
+  card.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    startX = e.clientX; startY = e.clientY; tracking = true;
+  });
+  card.addEventListener('pointerup', (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) < THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) {
+      document.getElementById('gc-next-btn').click();
+    } else {
+      const prevBtn = document.getElementById('gc-prev-btn');
+      if (!prevBtn.disabled) prevBtn.click();
+    }
+  });
+  card.addEventListener('pointercancel', () => { tracking = false; });
 }
 
 function syncShot(session, shot) {
@@ -61,7 +94,7 @@ export function renderShotSession(ctx) {
         '</div>' +
         '<div style="margin-top:10px;">' +
           '<div class="gc-toggle-label" style="margin-bottom:4px;">Post-shot — calidad de la decision</div>' +
-          '<div class="gc-result-row">' + [1, 2, 3, 4, 5].map((n) => '<div class="gc-result-peg ' + (shot.resultado === n ? 'sel' : '') + '" data-n="' + n + '">' + n + '</div>').join('') + '</div>' +
+          '<div class="gc-result-seg-row">' + RESULT_LEVELS.map((l) => '<div class="gc-result-seg-btn ' + (shot.resultado === l.value ? 'sel' : '') + '" data-n="' + l.value + '">' + l.label + '</div>').join('') + '</div>' +
         '</div>' +
         (shot.trackDistance ? '<div style="margin-top:14px;"><div class="gc-toggle-label" style="margin-bottom:6px;">Distancia real (opcional, yds)</div>' +
           '<input type="number" id="gc-dist-input" class="gc-d-input" value="' + (shot.distancia != null ? shot.distancia : '') + '" /></div>' : '') +
@@ -82,7 +115,7 @@ export function renderShotSession(ctx) {
 
   document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(state.session, shot); render(); };
   document.getElementById('gc-play').onclick = () => { shot.playBox = !shot.playBox; syncShot(state.session, shot); render(); };
-  document.querySelectorAll('.gc-result-peg').forEach((el) => {
+  document.querySelectorAll('.gc-result-seg-btn').forEach((el) => {
     el.onclick = () => { shot.resultado = parseInt(el.dataset.n, 10); syncShot(state.session, shot); render(); };
   });
   if (shot.trackDistance) {
@@ -98,6 +131,7 @@ export function renderShotSession(ctx) {
   document.getElementById('gc-next-btn').onclick = async () => {
     if (i === flat.length - 1) { await finishSession(); } else { state.currentFlatIndex++; render(); }
   };
+  wireCardSwipe();
   document.getElementById('gc-session-tempo-btn').onclick = () => {
     state.returnScreen = 'session';
     state.screen = 'tempo';

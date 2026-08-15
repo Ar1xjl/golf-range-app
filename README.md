@@ -132,6 +132,28 @@ Detalles de arquitectura no obvios:
   `env(safe-area-inset-top)` (Dynamic Island/notch) y el body
   `env(safe-area-inset-bottom)` (home indicator) - necesario corriendo como
   PWA instalada a pantalla completa.
+- **Swipe en la tarjeta del tiro**: `sessionShots.js` (`wireCardSwipe()`)
+  escucha Pointer Events (no Touch Events, asi anda con dedo y con mouse
+  por igual) sobre `.gc-card` para que Anterior/Siguiente tambien
+  respondan a un swipe horizontal, sin pisar el scroll vertical de la
+  pagina (`touch-action: pan-y` en `.gc-card`). El listener esta en la
+  tarjeta, no en toda la pantalla, para no interferir con otros
+  elementos; un tap normal sobre los toggles/pegs de adentro no dispara
+  nada porque no supera el umbral de movimiento (50px, predominantemente
+  horizontal). Solo en shots (A/B/C/E) - bloques (D) no tiene
+  Anterior/Siguiente.
+- **Escala de resultado (Post-shot / bloque)**: paso de 1-5 a 3 niveles
+  con nombre - Malo/Bueno/Excelente (`src/resultScale.js`, `RESULT_LEVELS`
+  / `RESULT_MAX`) - la escala de 5 era demasiado ancha para aplicar
+  consistente parado en el driving range. Los pegs numerados se
+  reemplazaron por un control segmentado de 3 palabras (mismo look que el
+  Si/Parcial/No de Think/Play Box en Variante D, pero resaltado en dorado
+  en vez de verde para diferenciarlo). El criterio de cada nivel esta
+  documentado en About. Los datos ya guardados con la escala vieja se
+  migran solos la primera vez que se abre la app con este cambio
+  (`db.js`, `DB_VERSION` 2 -> 3, remap 1,2->Malo · 3,4->Bueno · 5->Excelente
+  - colapsa preservando el orden, no hay forma de mapear 5 niveles a 3 sin
+  perder resolucion).
 
 ## Desarrollo
 
