@@ -24,7 +24,7 @@ import { registerSW } from 'virtual:pwa-register';
 
 import { VARIANT_DEFS, VARIANT_ORDER, flatten } from './variants.js';
 import * as db from './db.js';
-import { computeStats, suggestFocus } from './stats.js';
+import { computeStats, suggestFocus, computeGlobalReport, computeWeekCount } from './stats.js';
 import { exportCSV } from './csv.js';
 import { renderHome } from './screens/home.js';
 import { renderShotSession } from './screens/sessionShots.js';
@@ -37,6 +37,7 @@ import { renderTempo, cleanupTempoScreen } from './screens/tempo.js';
 import { renderAbout } from './screens/about.js';
 import { renderMenu } from './screens/menu.js';
 import { renderReports } from './screens/reports.js';
+import { renderWeeklyGoal } from './screens/weeklyGoal.js';
 import { releaseSessionWakeLock } from './sessionWakeLock.js';
 import { initPlayer } from './tempo/player.js';
 
@@ -45,6 +46,7 @@ const APP = document.getElementById('gc-app');
 const state = {
   screen: 'home', session: null, selectedVariant: 'C', currentFlatIndex: 0, loading: true,
   warmupSelected: '20', warmupSession: null, returnScreen: null, confirmingCancel: false,
+  sessionEndToast: null,
 };
 
 async function persistCurrentSession(finished) {
@@ -67,18 +69,46 @@ async function startCurrentSession() {
   await db.saveSession(state.session);
 }
 
+// Toast de "Meta cumplida"/"Nueva racha" para la pantalla de Summary -
+// calculado ANTES/DESPUES de esta sesion (no solo mirando el estado final)
+// para saber si algo recien se cruzo con esta sesion puntual, y no repetirlo
+// en cada sesion siguiente de la misma semana/racha. null si no hay nada que
+// festejar (no todo cierre de sesion necesita un toast).
+async function computeSessionEndToast(beforeSessions, session) {
+  const goalSetting = await db.getSetting('weeklyGoal');
+  const target = goalSetting && goalSetting.target;
+  const afterSessions = beforeSessions.concat([session]);
+  const weekCountBefore = computeWeekCount(beforeSessions);
+  const weekCountAfter = computeWeekCount(afterSessions);
+
+  if (target && weekCountAfter === target) {
+    return { type: 'goal', title: 'Meta cumplida 🎯', text: weekCountAfter + ' de ' + target + ' sesiones esta semana.' };
+  }
+  // Primera sesion de la semana actual Y la racha (que incluye esta semana)
+  // ya venia de antes - festeja extender una racha, no arrancar una nueva.
+  if (weekCountBefore === 0) {
+    const streakAfter = computeGlobalReport(afterSessions).streakWeeks;
+    if (streakAfter >= 2) {
+      return { type: 'streak', title: 'Nueva racha 🔥', text: streakAfter + ' semanas seguidas con al menos una sesion.' };
+    }
+  }
+  return null;
+}
+
 async function finishSession() {
   // Defensivo: si por algun camino se llega a Finalizar sin haber tocado
   // Iniciar antes (no deberia pasar, la UI no deja), esto evita guardar
   // una sesion "finalizada" sin id/fecha.
   if (state.session && !state.session.id) await startCurrentSession();
+  const beforeAll = (await db.getAllSessions()).filter((s) => s.finished && s.id !== state.session.id);
   await persistCurrentSession(true);
+  state.sessionEndToast = await computeSessionEndToast(beforeAll, state.session);
   state.screen = 'summary';
   render();
 }
 
 const ctx = {
-  APP, state, render, db, computeStats, suggestFocus, exportCSV,
+  APP, state, render, db, computeStats, suggestFocus, computeGlobalReport, computeWeekCount, exportCSV,
   VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, startCurrentSession, finishSession,
 };
 
@@ -124,6 +154,7 @@ function render() {
   if (state.screen === 'about') return renderAbout(ctx);
   if (state.screen === 'menu') return renderMenu(ctx);
   if (state.screen === 'reports') return renderReports(ctx);
+  if (state.screen === 'weekly-goal') return renderWeeklyGoal(ctx);
 }
 
 // ---------- Init ----------

@@ -13,12 +13,14 @@ export function renderMenu(ctx) {
     '</div>' +
     '<div class="gc-body">' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-reports" style="margin-bottom:10px;">📊 Reportes y estadisticas</button>' +
+      '<button class="gc-btn gc-btn-ghost" id="gc-menu-goal" style="margin-bottom:10px;">🎯 Meta semanal</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-export" style="margin-bottom:10px;">Exportar todo a CSV</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-about">Acerca de esta app</button>' +
     '</div>';
 
   document.getElementById('gc-back-btn').onclick = () => { state.screen = 'home'; render(); };
   document.getElementById('gc-menu-reports').onclick = () => { state.screen = 'reports'; render(); };
+  document.getElementById('gc-menu-goal').onclick = () => { state.returnScreen = 'menu'; state.screen = 'weekly-goal'; render(); };
   document.getElementById('gc-menu-export').onclick = () => exportCSV(null);
   document.getElementById('gc-menu-about').onclick = () => { state.screen = 'about'; render(); };
 }

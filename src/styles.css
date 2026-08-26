@@ -301,6 +301,55 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
 }
 #gc-app .gc-focus-banner b { color: var(--gold); }
 
+/* ---------- Racha / meta semanal (home.js) ---------- */
+#gc-app .gc-streak-card {
+  background: var(--green-deep); color: #fff; border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#gc-app .gc-streak-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+#gc-app .gc-streak-main { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; }
+#gc-app .gc-streak-sub { font-size: 11px; color: #C9D2C4; white-space: nowrap; }
+#gc-app .gc-bar-track { height: 7px; border-radius: 4px; background: rgba(245,241,228,0.18); overflow: hidden; }
+#gc-app .gc-bar-fill { height: 100%; border-radius: 4px; background: var(--gold); }
+#gc-app .gc-goal-cta {
+  background: var(--bg-card); border: 1px dashed var(--line); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; font-size: 12.5px; color: var(--ink-soft);
+  text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#gc-app .gc-goal-cta button { margin-top: 8px; pointer-events: none; }
+
+/* ---------- Delta framing (home.js: "vs sesion anterior") ---------- */
+#gc-app .gc-delta { font-size: 10.5px; font-weight: 600; margin-top: 2px; }
+#gc-app .gc-delta.up { color: var(--green); }
+#gc-app .gc-delta.down { color: var(--brick); }
+
+/* ---------- Meta semanal: stepper (screens/weeklyGoal.js) ---------- */
+#gc-app .gc-stepper { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 10px 0 4px; }
+#gc-app .gc-stepper-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: var(--green-deep); color: var(--bg); font-size: 18px; font-weight: 600;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#gc-app .gc-stepper-btn:disabled { background: #E4E0D2; color: #9A9587; cursor: default; }
+#gc-app .gc-stepper-num { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; min-width: 44px; text-align: center; }
+
+/* ---------- Toast de fin de sesion (screens/summary.js) ---------- */
+#gc-app .gc-toast-banner {
+  background: var(--bg-card); border: 1.5px solid var(--gold); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; text-align: center; font-size: 13px;
+}
+#gc-app .gc-toast-banner .gc-toast-title {
+  font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; margin-bottom: 3px;
+}
+
+/* ---------- Resumen en lenguaje simple de Reportes (screens/reports.js) ---------- */
+#gc-app .gc-insight-row {
+  display: flex; gap: 9px; align-items: flex-start; padding: 9px 0;
+  font-size: 13px; line-height: 1.4; border-bottom: 1px solid var(--line);
+}
+#gc-app .gc-insight-row:last-child { border-bottom: none; }
+
 /* ---------- Warm-up: timer del bloque activo ---------- */
 #gc-app .gc-timer {
   font-family: 'IBM Plex Mono', monospace; font-size: 40px; font-weight: 600;

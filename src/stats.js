@@ -35,12 +35,25 @@ export function computeStats(session) {
 }
 
 // Semana calendario (lunes) como timestamp, para calcular la racha.
-function weekStart(date) {
+// Exportada: computeWeekCount (mas abajo) la reusa para la meta semanal del
+// home, y main.js la necesita para comparar "antes/despues" al calcular el
+// toast de fin de sesion (ver finishSession).
+export function weekStart(date) {
   const d = new Date(date);
   const day = (d.getDay() + 6) % 7; // lunes = 0
   d.setDate(d.getDate() - day);
   d.setHours(0, 0, 0, 0);
   return d.getTime();
+}
+
+// Cantidad de sesiones finalizadas (todas las variantes, mismo criterio que
+// la racha) que caen en la semana calendario de `refDate` (lunes a domingo).
+// `sessions` debe venir ya filtrado a finished:true. Sin refDate, cuenta la
+// semana actual - usado por la card "Esta semana" del home y por el calculo
+// del toast de fin de sesion en main.js.
+export function computeWeekCount(sessions, refDate) {
+  const target = weekStart(refDate || new Date());
+  return sessions.filter((s) => weekStart(new Date(s.date)) === target).length;
 }
 
 // Semanas seguidas (incluyendo la actual) con al menos una sesion.

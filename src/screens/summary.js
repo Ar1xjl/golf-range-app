@@ -8,6 +8,15 @@ export async function renderSummary(ctx) {
   const prevStats = prev ? computeStats(prev) : null;
   const diff = prevStats ? (stats.avgResultado - prevStats.avgResultado) : null;
 
+  // Calculado en finishSession() (main.js) al cerrar esta sesion puntual -
+  // se consume una sola vez aca, para no repetirlo si se vuelve a esta
+  // pantalla por algun camino raro.
+  const toast = state.sessionEndToast;
+  state.sessionEndToast = null;
+  const toastHtml = toast
+    ? '<div class="gc-toast-banner"><div class="gc-toast-title">' + toast.title + '</div><div>' + toast.text + '</div></div>'
+    : '';
+
   APP.innerHTML =
     '<div class="gc-header">' +
       '<div class="gc-eyebrow">Sesion completa</div>' +
@@ -15,6 +24,7 @@ export async function renderSummary(ctx) {
       '<div class="gc-sub">Variante ' + state.session.key + ' · ' + stats.total + ' ' + (state.session.type === 'blocks' ? 'putts' : 'tiros') + ' registrados</div>' +
     '</div>' +
     '<div class="gc-body">' +
+      toastHtml +
       '<div class="gc-card"><div class="gc-stat-grid">' +
         '<div class="gc-stat"><div class="gc-stat-num">' + stats.avgResultado.toFixed(1) + '</div><div class="gc-stat-label">Resultado promedio</div></div>' +
         '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(stats.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box</div></div>' +

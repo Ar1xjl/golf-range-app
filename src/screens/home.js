@@ -11,12 +11,38 @@ import { firstIncompleteFlatIndex } from '../variants.js';
 import { RESULT_MAX } from '../resultScale.js';
 
 export async function renderHome(ctx) {
-  const { APP, state, render, db, computeStats, suggestFocus, VARIANT_DEFS, VARIANT_ORDER } = ctx;
+  const { APP, state, render, db, computeStats, suggestFocus, VARIANT_DEFS, VARIANT_ORDER, computeGlobalReport, computeWeekCount } = ctx;
   const sel = state.selectedVariant;
   const sessions = await db.loadAllForVariant(sel);
   const focus = suggestFocus(sessions);
   const last = sessions[sessions.length - 1];
   const lastStats = last ? computeStats(last) : null;
+  const prev = sessions.length > 1 ? sessions[sessions.length - 2] : null;
+  const prevStats = prev ? computeStats(prev) : null;
+
+  // Racha y meta semanal: cuentan TODAS las variantes (A-E), no solo la
+  // seleccionada - es "cuanto practicaste esta semana", no "cuanto
+  // practicaste esta variante". Mismo criterio que Reportes (computeGlobalReport).
+  const allFinished = (await db.getAllSessions()).filter((s) => s.finished);
+  const report = computeGlobalReport(allFinished);
+  const weekCount = computeWeekCount(allFinished);
+  const weeklyGoal = await db.getSetting('weeklyGoal');
+
+  let weekCardHtml;
+  if (weeklyGoal && weeklyGoal.target) {
+    const pct = Math.min(100, Math.round((weekCount / weeklyGoal.target) * 100));
+    weekCardHtml = '<div class="gc-streak-card" id="gc-week-card">' +
+      '<div class="gc-eyebrow" style="color:var(--gold)">Esta semana</div>' +
+      '<div class="gc-streak-row">' +
+        '<div class="gc-streak-main">' + weekCount + ' de ' + weeklyGoal.target + ' sesiones</div>' +
+        (report.streakWeeks > 0 ? '<div class="gc-streak-sub">' + report.streakWeeks + ' semana' + (report.streakWeeks === 1 ? '' : 's') + ' seguida' + (report.streakWeeks === 1 ? '' : 's') + '</div>' : '') +
+      '</div>' +
+      '<div class="gc-bar-track"><div class="gc-bar-fill" style="width:' + pct + '%;"></div></div>' +
+    '</div>';
+  } else {
+    weekCardHtml = '<div class="gc-goal-cta" id="gc-week-card">Elegi una meta semanal de sesiones para ver tu progreso aca.' +
+      '<div><button class="gc-btn gc-btn-ghost gc-btn-sm" style="width:auto;display:inline-block;padding-left:20px;padding-right:20px;">Configurar meta</button></div></div>';
+  }
 
   let focusHtml = '';
   if (focus) {
@@ -26,11 +52,18 @@ export async function renderHome(ctx) {
 
   let lastHtml = '';
   if (lastStats) {
+    const resultDiff = prevStats ? lastStats.avgResultado - prevStats.avgResultado : null;
+    const thinkDiff = prevStats ? Math.round(lastStats.pctThink * 100) - Math.round(prevStats.pctThink * 100) : null;
+    const deltaHtml = (diff, suffix) => {
+      if (diff == null || Math.abs(diff) < 0.05) return '';
+      const sign = diff > 0 ? '+' : '';
+      return '<div class="gc-delta ' + (diff > 0 ? 'up' : 'down') + '">' + sign + diff.toFixed(1).replace(/\.0$/, '') + suffix + ' vs. sesion anterior</div>';
+    };
     lastHtml = '<div class="gc-card">' +
       '<div class="gc-eyebrow" style="color:var(--green)">Ultima sesion — ' + VARIANT_DEFS[sel].label.split('—')[1].trim() + '</div>' +
       '<div class="gc-stat-grid">' +
-      '<div class="gc-stat"><div class="gc-stat-num">' + lastStats.avgResultado.toFixed(1) + '</div><div class="gc-stat-label">Resultado promedio</div></div>' +
-      '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(lastStats.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box</div></div>' +
+      '<div class="gc-stat"><div class="gc-stat-num">' + lastStats.avgResultado.toFixed(1) + '</div><div class="gc-stat-label">Resultado promedio</div>' + deltaHtml(resultDiff, '') + '</div>' +
+      '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(lastStats.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box</div>' + deltaHtml(thinkDiff, '%') + '</div>' +
       '</div></div>';
   }
 
@@ -60,7 +93,7 @@ export async function renderHome(ctx) {
       '<div class="gc-sub">Elegi una variante y entrena con proposito.</div>' +
     '</div>' +
     '<div class="gc-body">' +
-      preRoundHtml + focusHtml + lastHtml +
+      weekCardHtml + preRoundHtml + focusHtml + lastHtml +
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
         pillsHtml +
@@ -71,6 +104,11 @@ export async function renderHome(ctx) {
   document.getElementById('gc-menu-btn').onclick = () => { state.screen = 'menu'; render(); };
   document.getElementById('gc-warmup-entry').onclick = () => { state.screen = 'warmup-select'; render(); };
   document.getElementById('gc-tempo-entry').onclick = () => { state.returnScreen = 'home'; state.screen = 'tempo'; render(); };
+  // La card de "Esta semana" es clickeable entera cuando ya hay meta (para
+  // editarla), o solo el boton "Configurar meta" cuando todavia no se eligio
+  // ninguna - en ambos casos abre la misma pantalla.
+  const weekCard = document.getElementById('gc-week-card');
+  if (weekCard) weekCard.onclick = () => { state.returnScreen = 'home'; state.screen = 'weekly-goal'; render(); };
 
   // [data-variant]: distingue las 5 pills de variante de las de "Antes de
   // jugar" de arriba, que comparten la misma clase gc-variant-pill por estilo

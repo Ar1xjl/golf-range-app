@@ -8,9 +8,17 @@
 // Los filtros de variante de cada card son UI efimera de esta pantalla
 // (no algo que otras pantallas necesiten leer) - viven en modulo, mismo
 // patron que confirmingDeleteId en history.js.
+//
+// Los 6 analisis viven detras de "Ver analisis detallado" (showDetail, mas
+// abajo) - por defecto se ve un resumen en lenguaje simple
+// (buildReportInsights, en reportsSummary.js) mas los stats globales de
+// siempre, que ya son bastante legibles de por si. El detalle no se saco,
+// solo se movio un toque mas adentro: quien quiere el scatter/regresion lo
+// sigue teniendo entero.
 
 import { computeGlobalReport } from '../stats.js';
 import { RESULT_MAX } from '../resultScale.js';
+import { buildReportInsights } from '../reportsSummary.js';
 import {
   computeGapping, computeRoutineVsResult, linearRegression, computeBlockTrend,
   computeThirdsFatigue, computeVariantComparison, computeCircleTrend,
@@ -23,6 +31,7 @@ import {
 let gappingFilter = null; // null = todas las variantes A/B/C
 let routineFilter = null; // null = todas (A/B/C/E)
 let blockTrendVariant = null; // se inicializa a la primera con >=2 sesiones
+let showDetail = false; // false = solo el resumen en lenguaje simple
 
 function filterRowHtml(name, options, current) {
   return '<div class="gc-report-filter" data-filter="' + name + '">' +
@@ -98,32 +107,18 @@ export async function renderReports(ctx) {
   // ---------- P6: Circulo de 3 pies (Variante D) ----------
   const circlePoints = computeCircleTrend(finished.filter((s) => s.key === 'D'));
 
-  APP.innerHTML =
-    '<div class="gc-header">' +
-      '<button class="gc-nav-back" id="gc-back-btn">◂ VOLVER</button>' +
-      '<div class="gc-eyebrow">Menu</div>' +
-      '<h1 class="gc-title">Reportes</h1>' +
-      '<div class="gc-sub">Resumen de toda tu practica, todas las variantes.</div>' +
+  // ---------- Resumen en lenguaje simple (nuevo, vista por defecto) ----------
+  const insights = buildReportInsights(finished);
+  const insightsHtml = '<div class="gc-card">' +
+    (insights.length
+      ? insights.map((i) => '<div class="gc-insight-row"><span>' + i.icon + '</span><span>' + i.text + '</span></div>').join('')
+      : '<div class="gc-empty">Todavia estamos juntando suficientes datos para un resumen - segui practicando o mira el detalle abajo.</div>') +
     '</div>' +
-    '<div class="gc-body">' +
-      '<div class="gc-card">' +
-        '<div class="gc-stat-grid">' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + report.totalSessions + '</div><div class="gc-stat-label">Sesiones totales</div></div>' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + report.totalItems + '</div><div class="gc-stat-label">Tiros/putts registrados</div></div>' +
-        '</div>' +
-        '<div class="gc-stat-grid" style="margin-top:10px;">' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + report.streakWeeks + '</div><div class="gc-stat-label">Semanas seguidas</div></div>' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + (report.daysSinceLast != null ? report.daysSinceLast : '—') + '</div><div class="gc-stat-label">Dias desde la ultima</div></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="gc-card">' +
-        '<div class="gc-stat-grid">' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(report.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box global</div></div>' +
-          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(report.pctPlay * 100) + '%</div><div class="gc-stat-label">Play Box global</div></div>' +
-        '</div>' +
-      '</div>' +
-      (report.trend.length > 1 ? '<div class="gc-card"><div class="gc-eyebrow" style="color:var(--green)">Resultado promedio por sesion (todas las variantes)</div>' + trendChart + '</div>' : '') +
+    '<button class="gc-btn gc-btn-ghost" id="gc-detail-toggle">' +
+      (showDetail ? 'Ocultar analisis detallado ‹' : 'Ver analisis detallado (6) ›') +
+    '</button>';
 
+  const detailHtml = !showDetail ? '' :
       '<div class="gc-card">' +
         '<div class="gc-eyebrow" style="color:var(--green)">Gapping por palo</div>' +
         '<div class="gc-toggle-hint" style="margin-bottom:10px;">Distancia real promedio y rango (min-max) por palo/objetivo. Solo cuenta tiros con distancia cargada (Precision de A/B/C).</div>' +
@@ -158,10 +153,39 @@ export async function renderReports(ctx) {
         '<div class="gc-eyebrow" style="color:var(--green)">Circulo de 3 pies (Variante D)</div>' +
         '<div class="gc-toggle-hint" style="margin-bottom:10px;">% en circulo de 3 pies vs. resultado promedio, sesion a sesion - si se despegan, el puntaje subjetivo no esta siguiendo al dato objetivo.</div>' +
         renderCircleTrend(circlePoints) +
-      '</div>' : '') +
+      '</div>' : '');
+
+  APP.innerHTML =
+    '<div class="gc-header">' +
+      '<button class="gc-nav-back" id="gc-back-btn">◂ VOLVER</button>' +
+      '<div class="gc-eyebrow">Menu</div>' +
+      '<h1 class="gc-title">Reportes</h1>' +
+      '<div class="gc-sub">Resumen de toda tu practica, todas las variantes.</div>' +
+    '</div>' +
+    '<div class="gc-body">' +
+      '<div class="gc-card">' +
+        '<div class="gc-stat-grid">' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + report.totalSessions + '</div><div class="gc-stat-label">Sesiones totales</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + report.totalItems + '</div><div class="gc-stat-label">Tiros/putts registrados</div></div>' +
+        '</div>' +
+        '<div class="gc-stat-grid" style="margin-top:10px;">' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + report.streakWeeks + '</div><div class="gc-stat-label">Semanas seguidas</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + (report.daysSinceLast != null ? report.daysSinceLast : '—') + '</div><div class="gc-stat-label">Dias desde la ultima</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gc-card">' +
+        '<div class="gc-stat-grid">' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(report.pctThink * 100) + '%</div><div class="gc-stat-label">Think Box global</div></div>' +
+          '<div class="gc-stat"><div class="gc-stat-num">' + Math.round(report.pctPlay * 100) + '%</div><div class="gc-stat-label">Play Box global</div></div>' +
+        '</div>' +
+      '</div>' +
+      (report.trend.length > 1 ? '<div class="gc-card"><div class="gc-eyebrow" style="color:var(--green)">Resultado promedio por sesion (todas las variantes)</div>' + trendChart + '</div>' : '') +
+
+      insightsHtml + detailHtml +
     '</div>';
 
   document.getElementById('gc-back-btn').onclick = () => { state.screen = 'menu'; render(); };
+  document.getElementById('gc-detail-toggle').onclick = () => { showDetail = !showDetail; render(); };
 
   document.querySelectorAll('.gc-report-filter').forEach((row) => {
     row.querySelectorAll('.gc-report-filter-btn').forEach((btn) => {
