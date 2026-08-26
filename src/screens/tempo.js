@@ -14,8 +14,9 @@
 // dinamico y el motor Relax se disenaron y probaron en un artifact aparte
 // ("Tempo Sound Lab") antes de llevarlos aca.
 
-import { TEMPO_ORDER, TEMPO_LABELS } from '../tempo/engine.js';
+import { TEMPO_LABELS } from '../tempo/engine.js';
 import * as player from '../tempo/player.js';
+import { MOVEMENT_TYPES, MOVEMENT_LABELS } from '../tempo/player.js';
 
 let rafId = null;
 
@@ -69,7 +70,9 @@ export async function renderTempo(ctx) {
   const prefs = player.getPrefs();
 
   const backTarget = state.returnScreen || 'home';
-  const tempoIdx = Math.max(0, TEMPO_ORDER.indexOf(prefs.tempo));
+  const activeTempo = player.getActiveTempo();
+  const activeOrder = player.getActiveTempoOrder();
+  const tempoIdx = Math.max(0, activeOrder.indexOf(activeTempo));
   const eng = player.getCurrentEngineSettings();
   const playing = player.isPlaying();
 
@@ -82,10 +85,15 @@ export async function renderTempo(ctx) {
     '</div>' +
     '<div class="gc-body">' +
       '<div class="gc-card">' +
-        '<div class="gc-eyebrow" style="color:var(--green)">Velocidad de swing</div>' +
-        '<div class="tt-tempo-label" id="tt-tempo-label">' + tempoLabelHtml(prefs.tempo) + '</div>' +
-        '<input type="range" id="tt-tempo-slider" min="0" max="5" step="1" value="' + tempoIdx + '">' +
-        '<div class="tt-tempo-ticks"><span>Amateur</span><span>Pro</span></div>' +
+        '<div class="gc-eyebrow" style="color:var(--green)">Tipo de movimiento</div>' +
+        '<div class="tt-seg" id="tt-movement-seg">' +
+          MOVEMENT_TYPES.map((k) => '<div class="tt-seg-btn ' + (prefs.movementType === k ? 'sel' : '') + '" data-movement="' + k + '">' + MOVEMENT_LABELS[k] + '</div>').join('') +
+        '</div>' +
+
+        '<div class="gc-eyebrow" style="color:var(--green); margin-top:18px;" id="tt-tempo-eyebrow">' + (prefs.movementType === 'putt' ? 'Velocidad de putt' : 'Velocidad de swing') + '</div>' +
+        '<div class="tt-tempo-label" id="tt-tempo-label">' + tempoLabelHtml(activeTempo) + '</div>' +
+        '<input type="range" id="tt-tempo-slider" min="0" max="' + (activeOrder.length - 1) + '" step="1" value="' + tempoIdx + '">' +
+        '<div class="tt-tempo-ticks" id="tt-tempo-ticks">' + (prefs.movementType === 'putt' ? '<span>Lento</span><span>Rapido</span>' : '<span>Amateur</span><span>Pro</span>') + '</div>' +
 
         '<div class="gc-eyebrow" style="color:var(--green); margin-top:18px;">Sonido</div>' +
         '<div class="tt-seg" id="tt-sound-seg">' +
@@ -144,7 +152,7 @@ export async function renderTempo(ctx) {
       '</details>' +
     '</div>';
 
-  drawZones(prefs.tempo);
+  drawZones(activeTempo);
   if (playing) startMarkerLoop();
 
   document.getElementById('gc-back-btn').onclick = () => {
@@ -155,11 +163,30 @@ export async function renderTempo(ctx) {
 
   document.getElementById('tt-tempo-slider').oninput = (e) => {
     const idx = parseInt(e.target.value, 10);
-    const tempo = TEMPO_ORDER[idx];
+    const tempo = player.getActiveTempoOrder()[idx];
     document.getElementById('tt-tempo-label').innerHTML = tempoLabelHtml(tempo);
     player.setTempo(tempo);
     drawZones(tempo);
   };
+
+  document.querySelectorAll('#tt-movement-seg .tt-seg-btn').forEach((el) => {
+    el.onclick = () => {
+      if (el.dataset.movement === player.getPrefs().movementType) return;
+      document.querySelectorAll('#tt-movement-seg .tt-seg-btn').forEach((b) => b.classList.remove('sel'));
+      el.classList.add('sel');
+      player.setMovementType(el.dataset.movement);
+
+      const newOrder = player.getActiveTempoOrder();
+      const newTempo = player.getActiveTempo();
+      document.getElementById('tt-tempo-eyebrow').textContent = el.dataset.movement === 'putt' ? 'Velocidad de putt' : 'Velocidad de swing';
+      document.getElementById('tt-tempo-label').innerHTML = tempoLabelHtml(newTempo);
+      const slider = document.getElementById('tt-tempo-slider');
+      slider.max = newOrder.length - 1;
+      slider.value = Math.max(0, newOrder.indexOf(newTempo));
+      document.getElementById('tt-tempo-ticks').innerHTML = el.dataset.movement === 'putt' ? '<span>Lento</span><span>Rapido</span>' : '<span>Amateur</span><span>Pro</span>';
+      drawZones(newTempo);
+    };
+  });
 
   document.querySelectorAll('#tt-sound-seg .tt-seg-btn').forEach((el) => {
     el.onclick = () => {

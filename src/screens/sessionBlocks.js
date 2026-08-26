@@ -3,6 +3,7 @@
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 import { ensureSessionWakeLock } from '../sessionWakeLock.js';
 import { RESULT_LEVELS } from '../resultScale.js';
+import * as tempoPlayer from '../tempo/player.js';
 
 function seaBanner(session) {
   return '<div class="gc-sea-banner">Sesion #' + (session.sessionNumber || 1) + ' — Variante ' + session.key + ': ' + session.name + '</div>';
@@ -19,9 +20,17 @@ export function renderBlockSession(ctx) {
     const resultRow = '<div class="gc-result-seg-row" data-field="resultado" data-block="' + bi + '">' +
       RESULT_LEVELS.map((l) => '<div class="gc-result-seg-btn ' + (b.resultado === l.value ? 'sel' : '') + '" data-n="' + l.value + '">' + l.label + '</div>').join('') + '</div>';
 
+    // Bloque 1 (Calibracion de velocidad) es donde tiene mas sentido sentir
+    // el tempo del putt antes de arrancar - atajo directo al modo Putt del
+    // Tempo Trainer, ademas del acceso general al pie de la pantalla.
+    const puttTempoBtn = bi === 0
+      ? '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-block1-tempo-btn" style="margin-top:10px;">🎧 Tempo Trainer (Putt)</button>'
+      : '';
+
     return '<div class="gc-card">' +
       '<div class="gc-eyebrow" style="color:var(--green)">' + b.name + '</div>' +
       '<div class="gc-shotnum" style="margin-bottom:10px;">' + b.objetivo + '</div>' +
+      puttTempoBtn +
       '<div class="gc-toggle-label">Cantidad de putts</div>' +
       '<input type="number" class="gc-d-input" data-field="cantidadReal" data-block="' + bi + '" value="' + (b.cantidadReal != null ? b.cantidadReal : b.cantidadSugerida) + '" />' +
       '<div class="gc-toggle-label" style="margin-top:12px;">Think Box</div>' + segRow('thinkBox', b.thinkBox) +
@@ -81,6 +90,16 @@ export function renderBlockSession(ctx) {
     state.screen = 'tempo';
     render();
   };
+  const block1TempoBtn = document.getElementById('gc-block1-tempo-btn');
+  if (block1TempoBtn) {
+    block1TempoBtn.onclick = async () => {
+      if (!tempoPlayer.getPrefs()) await tempoPlayer.initPlayer(db);
+      tempoPlayer.setMovementType('putt');
+      state.returnScreen = 'session';
+      state.screen = 'tempo';
+      render();
+    };
+  }
   if (started) {
     document.getElementById('gc-finish-d-btn').onclick = async () => { await finishSession(); };
     document.getElementById('gc-exit-d-btn').onclick = async () => {

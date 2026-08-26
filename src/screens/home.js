@@ -48,7 +48,7 @@ export async function renderHome(ctx) {
         '<div><div class="gc-variant-name">Warm-up</div><div class="gc-variant-desc">Elegi cuanto tiempo tenes</div></div>' +
       '</div>' +
       '<div class="gc-variant-pill" id="gc-tempo-entry" style="margin-bottom:0;">' +
-        '<div><div class="gc-variant-name">🎧 Tempo Trainer</div><div class="gc-variant-desc">Ritmo 3:1 con audio</div></div>' +
+        '<div><div class="gc-variant-name">🎧 Tempo Trainer</div><div class="gc-variant-desc">Swing 3:1 o Putt 2:1, con audio</div></div>' +
       '</div>' +
     '</div>';
 

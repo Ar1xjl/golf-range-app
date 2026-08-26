@@ -16,7 +16,7 @@
 // modulo: lee prefs de aca, y sus controles llaman a las funciones de aca
 // en vez de manejar su propio engine.
 
-import { createTempoEngine, TEMPO_ORDER, TEMPO_LABELS, getTempoPreset } from './engine.js';
+import { createTempoEngine, TEMPO_ORDER, PUTT_TEMPO_ORDER, TEMPO_LABELS, getTempoPreset } from './engine.js';
 import { createWakeLockHandle } from '../wakeLock.js';
 
 export const ENGINES = ['natural', 'saber', 'relax'];
@@ -35,7 +35,15 @@ const DEFAULT_PER_ENGINE = {
   saber: { freqLow: 260, freqHigh: 950, reverbWet: 0, reverbDecay: 45, dynamics: 1.0 },
   relax: { freqLow: 440, freqHigh: 460, reverbWet: 48, reverbDecay: 55, dynamics: 1.5 },
 };
-const DEFAULT_PREFS = { tempo: 'pro-medium', soundMode: 'natural', tickEnabled: false };
+export const MOVEMENT_TYPES = ['swing', 'putt'];
+export const MOVEMENT_LABELS = { swing: 'Swing completo (3:1)', putt: 'Putt (2:1)' };
+// tempo (swing) y puttTempo (putt) se guardan por separado - cada modo
+// recuerda su propia ultima velocidad, igual que cada motor de sonido
+// recuerda su propio grave/agudo/reverb via perEngine.
+const DEFAULT_PREFS = {
+  movementType: 'swing', tempo: 'pro-medium', puttTempo: 'putt-tour',
+  soundMode: 'natural', tickEnabled: false,
+};
 const SETTINGS_ID = 'tempoTrainer';
 
 let dbRef = null;
@@ -53,12 +61,15 @@ async function loadPrefsFromDb(db) {
   });
   // Valida contra las claves vigentes: alguien que probo la app antes de
   // los presets Garmin (o antes de los renames Sintetico/Organo -> Saber/
-  // Relax) puede tener guardado un tempo/soundMode que ya no existe. Sin
-  // este chequeo, TEMPOS[tempo] o perEngine[soundMode] da undefined y el
-  // motor tira una excepcion en silencio apenas se toca Reproducir.
+  // Relax, o antes del modo Putt) puede tener guardado un tempo/soundMode/
+  // movementType que ya no existe. Sin este chequeo, TEMPOS[tempo] o
+  // perEngine[soundMode] da undefined y el motor tira una excepcion en
+  // silencio apenas se toca Reproducir.
   const tempo = TEMPO_ORDER.includes(saved && saved.tempo) ? saved.tempo : DEFAULT_PREFS.tempo;
+  const puttTempo = PUTT_TEMPO_ORDER.includes(saved && saved.puttTempo) ? saved.puttTempo : DEFAULT_PREFS.puttTempo;
+  const movementType = MOVEMENT_TYPES.includes(saved && saved.movementType) ? saved.movementType : DEFAULT_PREFS.movementType;
   const soundMode = ENGINES.includes(saved && saved.soundMode) ? saved.soundMode : DEFAULT_PREFS.soundMode;
-  return { tempo, soundMode, tickEnabled: !!(saved && saved.tickEnabled), perEngine };
+  return { movementType, tempo, puttTempo, soundMode, tickEnabled: !!(saved && saved.tickEnabled), perEngine };
 }
 
 function persist() {
@@ -82,11 +93,18 @@ async function ensureLoaded() {
 
 export function getPrefs() { return prefs; }
 export function getCurrentEngineSettings() { return prefs.perEngine[prefs.soundMode]; }
+// Velocidad realmente sonando: prefs.tempo (swing) o prefs.puttTempo (putt),
+// segun el modo de movimiento activo. Todo lo demas (mini-reproductor,
+// creacion del engine, tempo.js) lee la velocidad a traves de esta funcion
+// en vez de prefs.tempo directo, para no tener que acordarse del if en cada
+// lugar que la usa.
+export function getActiveTempo() { return prefs.movementType === 'putt' ? prefs.puttTempo : prefs.tempo; }
+export function getActiveTempoOrder() { return prefs.movementType === 'putt' ? PUTT_TEMPO_ORDER : TEMPO_ORDER; }
 
 function getEngineInstance() {
   if (!engine) {
     const eng = prefs.perEngine[prefs.soundMode];
-    engine = createTempoEngine({ tempo: prefs.tempo, soundMode: prefs.soundMode, tickEnabled: prefs.tickEnabled, ...eng });
+    engine = createTempoEngine({ tempo: getActiveTempo(), soundMode: prefs.soundMode, tickEnabled: prefs.tickEnabled, ...eng });
   }
   return engine;
 }
@@ -111,8 +129,18 @@ export function stop() {
 }
 
 export function setTempo(v) {
-  prefs.tempo = v;
+  if (prefs.movementType === 'putt') prefs.puttTempo = v; else prefs.tempo = v;
   if (engine) engine.setTempo(v);
+  persist();
+  renderMiniPlayer();
+}
+
+// Cambia entre Swing completo y Putt. Cada modo recuerda su propia ultima
+// velocidad (prefs.tempo / prefs.puttTempo) - no resetea al valor medio,
+// asi que ir y volver entre modos no pierde donde estabas.
+export function setMovementType(v) {
+  prefs.movementType = v;
+  if (engine) engine.setTempo(getActiveTempo());
   persist();
   renderMiniPlayer();
 }
@@ -152,7 +180,7 @@ function renderMiniPlayer() {
   miniPlayerEl.innerHTML =
     '<div class="gc-mini-player-inner" id="gc-mini-open">' +
       '<span class="gc-mini-dot"></span>' +
-      '<span class="gc-mini-label">🎧 ' + TEMPO_LABELS[prefs.tempo] + '</span>' +
+      '<span class="gc-mini-label">🎧 ' + TEMPO_LABELS[getActiveTempo()] + '</span>' +
       '<button class="gc-mini-stop" id="gc-mini-stop">Detener</button>' +
     '</div>';
   document.getElementById('gc-mini-stop').onclick = (e) => { e.stopPropagation(); stop(); };

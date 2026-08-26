@@ -28,12 +28,26 @@ const TEMPOS = {
   'pro-slow':   { back: 0.90, pause: 0.07, down: 0.30, tail: 0.22, rest: 0.50 },
   'pro-medium': { back: 0.80, pause: 0.06, down: 0.27, tail: 0.19, rest: 0.45 },
   'pro-fast':   { back: 0.70, pause: 0.06, down: 0.23, tail: 0.17, rest: 0.39 },
+  // Putt: proporcion back/down 2:1 (no 3:1) en las 3 velocidades, y pausa de
+  // transicion minima (0.015s en vez de 0.05-0.09s) - a diferencia del swing
+  // completo, el putt stroke no tiene un "freeze" marcado en la cima. Fisica:
+  // un pendulo forzado al doble de su frecuencia de resonancia natural, por
+  // eso el tempo no cambia con el largo del putt, solo la amplitud. Valores
+  // validados en el prototipo standalone (tempo_trainer_doppler_prototipo.html)
+  // y en el estudio PGA Tour 2007 (99 jugadores, back/down promedio 670/317ms)
+  // ademas de datos de Blast Motion (200+ pros, 0.6s/0.3s) - de ahi el nombre
+  // "Tour" para la velocidad media, que es la que corresponde al promedio medido.
+  'putt-slow':  { back: 0.70, pause: 0.015, down: 0.35, tail: 0.14, rest: 0.55 },
+  'putt-tour':  { back: 0.60, pause: 0.015, down: 0.30, tail: 0.12, rest: 0.48 },
+  'putt-fast':  { back: 0.50, pause: 0.015, down: 0.25, tail: 0.10, rest: 0.40 },
 };
 
 export const TEMPO_ORDER = ['am-slow', 'am-medium', 'am-fast', 'pro-slow', 'pro-medium', 'pro-fast'];
+export const PUTT_TEMPO_ORDER = ['putt-slow', 'putt-tour', 'putt-fast'];
 export const TEMPO_LABELS = {
   'am-slow': 'Amateur Lento', 'am-medium': 'Amateur Medio', 'am-fast': 'Amateur Rapido',
   'pro-slow': 'Pro Lento', 'pro-medium': 'Pro Medio', 'pro-fast': 'Pro Rapido',
+  'putt-slow': 'Putt Lento', 'putt-tour': 'Putt Tour', 'putt-fast': 'Putt Rapido',
 };
 
 // Standalone (no hace falta una instancia del motor) - lo usan tanto
