@@ -58,6 +58,11 @@ export function renderBlockSession(ctx) {
           '<button class="gc-btn gc-btn-ghost" id="gc-back-btn" style="margin-top:8px;">Volver atras</button>') +
     '</div>';
 
+  // Autosave: mismo mecanismo que sessionShots.js - si la sesion ya esta
+  // iniciada, cada cambio se guarda en el momento en vez de esperar a
+  // "Pausar y salir", para no perder nada si la app se cierra de golpe.
+  const autosave = () => { if (started) persistCurrentSession(false).catch(() => {}); };
+
   document.querySelectorAll('.gc-d-input, .gc-d-textarea').forEach((el) => {
     el.onchange = (e) => {
       const bi = parseInt(el.dataset.block, 10);
@@ -65,6 +70,7 @@ export function renderBlockSession(ctx) {
       let val = e.target.value;
       if (field === 'cantidadReal' || field === 'pctCirculo') val = val === '' ? null : parseFloat(val);
       session.blocks[bi][field] = val;
+      autosave();
     };
   });
   document.querySelectorAll('.gc-seg-row').forEach((row) => {
@@ -72,6 +78,7 @@ export function renderBlockSession(ctx) {
       btn.onclick = () => {
         const bi = parseInt(row.dataset.block, 10);
         session.blocks[bi][row.dataset.field] = btn.dataset.val;
+        autosave();
         render();
       };
     });
@@ -81,6 +88,7 @@ export function renderBlockSession(ctx) {
       peg.onclick = () => {
         const bi = parseInt(row.dataset.block, 10);
         session.blocks[bi].resultado = parseInt(peg.dataset.n, 10);
+        autosave();
         render();
       };
     });

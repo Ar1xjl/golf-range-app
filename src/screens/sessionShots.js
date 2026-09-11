@@ -113,15 +113,26 @@ export function renderShotSession(ctx) {
           '<button class="gc-btn gc-btn-ghost gc-btn-sm" id="gc-back-btn" style="margin-top:8px;">Volver atras</button>') +
     '</div>';
 
-  document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(state.session, shot); render(); };
-  document.getElementById('gc-play').onclick = () => { shot.playBox = !shot.playBox; syncShot(state.session, shot); render(); };
+  // Autosave: si la sesion ya esta iniciada (persistida), cada cambio se
+  // guarda en el momento en vez de esperar a "Pausar y salir" - antes, si
+  // la app se cerraba de golpe (fuerza el cierre, el sistema la mata en
+  // segundo plano) entre medio, se perdia todo lo tiroteado desde el
+  // ultimo guardado explicito. Fire-and-forget (no se espera antes de
+  // renderizar) para que el toggle/peg se sienta instantaneo - el .catch
+  // es solo para que un fallo raro de IndexedDB no quede como rejection
+  // sin manejar, nunca debe interrumpir el flujo del usuario.
+  const autosave = () => { if (started) persistCurrentSession(false).catch(() => {}); };
+
+  document.getElementById('gc-think').onclick = () => { shot.thinkBox = !shot.thinkBox; syncShot(state.session, shot); autosave(); render(); };
+  document.getElementById('gc-play').onclick = () => { shot.playBox = !shot.playBox; syncShot(state.session, shot); autosave(); render(); };
   document.querySelectorAll('.gc-result-seg-btn').forEach((el) => {
-    el.onclick = () => { shot.resultado = parseInt(el.dataset.n, 10); syncShot(state.session, shot); render(); };
+    el.onclick = () => { shot.resultado = parseInt(el.dataset.n, 10); syncShot(state.session, shot); autosave(); render(); };
   });
   if (shot.trackDistance) {
     document.getElementById('gc-dist-input').onchange = (e) => {
       shot.distancia = e.target.value ? parseFloat(e.target.value) : null;
       syncShot(state.session, shot);
+      autosave();
     };
   }
   document.querySelectorAll('.gc-block-box').forEach((el) => {

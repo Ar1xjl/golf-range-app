@@ -109,6 +109,17 @@ Detalles de arquitectura no obvios:
   en ese punto la sesion ya tiene `id` (se guardo al tocar "Iniciar"),
   descartar tambien borra ese registro (`db.deleteSession`) para no dejarlo
   huerfano en IndexedDB.
+- **Autosave por tiro/bloque**: antes, una vez iniciada la sesion, cada
+  cambio (Think/Play Box, resultado, distancia, cantidad de putts...) solo
+  vivia en memoria hasta tocar "Pausar y salir" o "Finalizar" - si la app
+  se cerraba de golpe entre medio (fuerza el cierre, el sistema la mata en
+  segundo plano), se perdia todo lo cargado desde el ultimo guardado
+  explicito. `sessionShots.js`/`sessionBlocks.js` ahora llaman a
+  `persistCurrentSession(false)` (fire-and-forget, sin `await` antes de
+  renderizar - IndexedDB es rapido para un objeto de sesion chico, y no
+  tiene sentido trabar el toggle esperando el guardado) en cada mutacion,
+  solo si `started` (una sesion "explorando" sigue sin persistir nada,
+  a proposito - ver "Explorar antes de iniciar" arriba).
 - **Wake Lock**: la pantalla no se apaga sola durante una sesion de
   practica, un warm-up, o mientras suena el Tempo Trainer
   (`src/wakeLock.js`, factory `createWakeLockHandle()` - cada feature tiene
