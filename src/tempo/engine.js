@@ -248,6 +248,7 @@ export function createTempoEngine(initial) {
 
     tickBuffer = buildNoiseBuffer(audioCtx, 0.05);
     applyReverbParams();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
   }
 
   function scheduleTick(tImpact) {
@@ -273,68 +274,97 @@ export function createTempoEngine(initial) {
     // (dato viejo persistido con un esquema anterior, por ejemplo), esto
     // evita romper en silencio en vez de sonar con un preset razonable.
     const t = TEMPOS[currentTempo] || TEMPOS['pro-medium'];
-    const lookahead = 0.05;
-    const t0 = audioCtx.currentTime + lookahead;
-    const tTop = t0 + t.back;
-    const tPauseEnd = tTop + t.pause;
-    const tImpact = tPauseEnd + t.down;
-    const tTail = tImpact;
+    const totalCycle = (t.back + t.pause + t.down + t.tail + t.rest) * 1000;
 
-    [naturalGain, saberGain, relaxGain].forEach((g) => { g.gain.cancelScheduledValues(t0); g.gain.setValueAtTime(0.0, t0); });
-    filter.frequency.cancelScheduledValues(t0);
-    carrier.frequency.cancelScheduledValues(t0);
-    bowlOscA.concat(bowlOscB).forEach((o) => o.frequency.cancelScheduledValues(t0));
+    // Todo lo de aca adentro toca AudioParams (setValueCurveAtTime /
+    // cancelScheduledValues) que puede tirar una excepcion en casos limite -
+    // por ejemplo si el usuario cambia tempo/sonido justo cuando cae en el
+    // medio de una curva ya en curso, algo que el motor no puede prevenir
+    // del todo y que algunos navegadores manejan de forma inconsistente.
+    // Sin este try/catch, ese throw cortaba la cadena de setTimeout de
+    // scheduleCycle para siempre: el reproductor quedaba en estado
+    // "reproduciendo" pero sonando en silencio, sin ningun error visible,
+    // hasta cerrar y reabrir la app (el bug real que motivo este comentario).
+    // Dejando pasar el ciclo en silencio y reintentando en el siguiente,
+    // el trainer se autorecupera solo.
+    try {
+      const lookahead = 0.05;
+      const t0 = audioCtx.currentTime + lookahead;
+      const tTop = t0 + t.back;
+      const tPauseEnd = tTop + t.pause;
+      const tImpact = tPauseEnd + t.down;
 
-    if (soundMode === 'natural') {
-      const backPeakFreq = freqLow + (freqHigh - freqLow) * 0.55;
-      filter.frequency.setValueCurveAtTime(backswingCurve(freqLow, backPeakFreq), t0, t.back);
-      naturalGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.02), dPeak(0.30), undefined, expInterp), t0, t.back);
-      filter.frequency.setValueCurveAtTime(downswingCurve(freqLow, freqHigh), tPauseEnd, t.down);
-      naturalGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.02), dPeak(0.65), undefined, expInterp), tPauseEnd, t.down);
-      filter.frequency.setValueCurveAtTime(tailCurve(freqHigh, freqLow + (freqHigh - freqLow) * 0.12), tImpact, t.tail);
-      naturalGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.65), 0.001, undefined, expInterp), tImpact, t.tail);
-    } else if (soundMode === 'saber') {
-      const lowF = Math.max(40, freqLow * 0.4), highF = Math.max(lowF + 20, freqHigh * 0.4);
-      const backPeakF = lowF + (highF - lowF) * 0.55;
-      carrier.frequency.setValueCurveAtTime(backswingCurve(lowF, backPeakF), t0, t.back);
-      saberGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.015), dPeak(0.22), undefined, expInterp), t0, t.back);
-      carrier.frequency.setValueCurveAtTime(downswingCurve(lowF, highF), tPauseEnd, t.down);
-      saberGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.015), dPeak(0.42), undefined, expInterp), tPauseEnd, t.down);
-      carrier.frequency.setValueCurveAtTime(tailCurve(highF, lowF + (highF - lowF) * 0.12), tImpact, t.tail);
-      saberGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.42), 0.001, undefined, expInterp), tImpact, t.tail);
-    } else if (soundMode === 'relax') {
-      const xBack = backswingCurve(freqLow, freqLow + (freqHigh - freqLow) * 0.55);
-      bowlRatios.forEach((ratio, i) => {
-        const c = scaleCurve(xBack, ratio);
-        bowlOscA[i].frequency.setValueCurveAtTime(c, t0, t.back);
-        bowlOscB[i].frequency.setValueCurveAtTime(c, t0, t.back);
-      });
-      relaxGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.02), dPeak(0.26), undefined, expInterp), t0, t.back);
+      [naturalGain, saberGain, relaxGain].forEach((g) => { g.gain.cancelScheduledValues(t0); g.gain.setValueAtTime(0.0, t0); });
+      filter.frequency.cancelScheduledValues(t0);
+      carrier.frequency.cancelScheduledValues(t0);
+      bowlOscA.concat(bowlOscB).forEach((o) => o.frequency.cancelScheduledValues(t0));
 
-      const xDown = downswingCurve(freqLow, freqHigh);
-      bowlRatios.forEach((ratio, i) => {
-        const c = scaleCurve(xDown, ratio);
-        bowlOscA[i].frequency.setValueCurveAtTime(c, tPauseEnd, t.down);
-        bowlOscB[i].frequency.setValueCurveAtTime(c, tPauseEnd, t.down);
-      });
-      relaxGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.02), dPeak(0.55), undefined, expInterp), tPauseEnd, t.down);
+      if (soundMode === 'natural') {
+        const backPeakFreq = freqLow + (freqHigh - freqLow) * 0.55;
+        filter.frequency.setValueCurveAtTime(backswingCurve(freqLow, backPeakFreq), t0, t.back);
+        naturalGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.02), dPeak(0.30), undefined, expInterp), t0, t.back);
+        filter.frequency.setValueCurveAtTime(downswingCurve(freqLow, freqHigh), tPauseEnd, t.down);
+        naturalGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.02), dPeak(0.65), undefined, expInterp), tPauseEnd, t.down);
+        filter.frequency.setValueCurveAtTime(tailCurve(freqHigh, freqLow + (freqHigh - freqLow) * 0.12), tImpact, t.tail);
+        naturalGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.65), 0.001, undefined, expInterp), tImpact, t.tail);
+      } else if (soundMode === 'saber') {
+        const lowF = Math.max(40, freqLow * 0.4), highF = Math.max(lowF + 20, freqHigh * 0.4);
+        const backPeakF = lowF + (highF - lowF) * 0.55;
+        carrier.frequency.setValueCurveAtTime(backswingCurve(lowF, backPeakF), t0, t.back);
+        saberGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.015), dPeak(0.22), undefined, expInterp), t0, t.back);
+        carrier.frequency.setValueCurveAtTime(downswingCurve(lowF, highF), tPauseEnd, t.down);
+        saberGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.015), dPeak(0.42), undefined, expInterp), tPauseEnd, t.down);
+        carrier.frequency.setValueCurveAtTime(tailCurve(highF, lowF + (highF - lowF) * 0.12), tImpact, t.tail);
+        saberGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.42), 0.001, undefined, expInterp), tImpact, t.tail);
+      } else if (soundMode === 'relax') {
+        const xBack = backswingCurve(freqLow, freqLow + (freqHigh - freqLow) * 0.55);
+        bowlRatios.forEach((ratio, i) => {
+          const c = scaleCurve(xBack, ratio);
+          bowlOscA[i].frequency.setValueCurveAtTime(c, t0, t.back);
+          bowlOscB[i].frequency.setValueCurveAtTime(c, t0, t.back);
+        });
+        relaxGain.gain.setValueCurveAtTime(backswingCurve(dFloor(0.02), dPeak(0.26), undefined, expInterp), t0, t.back);
 
-      const xTail = tailCurve(freqHigh, freqLow + (freqHigh - freqLow) * 0.12);
-      bowlRatios.forEach((ratio, i) => {
-        const c = scaleCurve(xTail, ratio);
-        bowlOscA[i].frequency.setValueCurveAtTime(c, tImpact, t.tail);
-        bowlOscB[i].frequency.setValueCurveAtTime(c, tImpact, t.tail);
-      });
-      relaxGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.55), 0.001, undefined, expInterp), tImpact, t.tail);
+        const xDown = downswingCurve(freqLow, freqHigh);
+        bowlRatios.forEach((ratio, i) => {
+          const c = scaleCurve(xDown, ratio);
+          bowlOscA[i].frequency.setValueCurveAtTime(c, tPauseEnd, t.down);
+          bowlOscB[i].frequency.setValueCurveAtTime(c, tPauseEnd, t.down);
+        });
+        relaxGain.gain.setValueCurveAtTime(downswingCurve(dFloor(0.02), dPeak(0.55), undefined, expInterp), tPauseEnd, t.down);
+
+        const xTail = tailCurve(freqHigh, freqLow + (freqHigh - freqLow) * 0.12);
+        bowlRatios.forEach((ratio, i) => {
+          const c = scaleCurve(xTail, ratio);
+          bowlOscA[i].frequency.setValueCurveAtTime(c, tImpact, t.tail);
+          bowlOscB[i].frequency.setValueCurveAtTime(c, tImpact, t.tail);
+        });
+        relaxGain.gain.setValueCurveAtTime(tailCurve(dPeak(0.55), 0.001, undefined, expInterp), tImpact, t.tail);
+      }
+
+      scheduleTick(tImpact);
+
+      cycleStartPerf = performance.now() + lookahead * 1000;
+      cycleDurationMs = (t.back + t.pause + t.down + t.tail) * 1000;
+    } catch (e) {
+      // Ciclo perdido en silencio - el siguiente setTimeout de abajo reintenta.
     }
 
-    scheduleTick(tImpact);
-
-    cycleStartPerf = performance.now() + lookahead * 1000;
-    cycleDurationMs = (t.back + t.pause + t.down + t.tail) * 1000;
-
-    const totalCycle = (t.back + t.pause + t.down + t.tail + t.rest) * 1000;
     cycleTimeoutId = setTimeout(scheduleCycle, totalCycle);
+  }
+
+  // iOS (Safari standalone/PWA incluido) suspende el AudioContext cuando la
+  // app pasa a segundo plano (bloqueo de pantalla, cambio de app) y no lo
+  // reanuda solo al volver - a diferencia de un <audio>/<video> normal, un
+  // AudioContext suspendido no reanuda automaticamente. Sin este listener,
+  // volver a la app con el trainer "reproduciendo" quedaba en silencio total
+  // hasta tocar Detener/Reproducir (o, si el usuario no se daba cuenta,
+  // hasta reinstalar la app pensando que estaba roto).
+  function handleVisibilityChange() {
+    if (!audioCtx || !playing) return;
+    if (document.visibilityState === 'visible' && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
   }
 
   function start() {
@@ -362,6 +392,7 @@ export function createTempoEngine(initial) {
   // salida (no solo el boton "Detener").
   function dispose() {
     stop();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
     if (audioCtx) {
       audioCtx.close().catch(() => {});
       audioCtx = null;
