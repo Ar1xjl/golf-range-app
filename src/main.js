@@ -25,7 +25,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { VARIANT_DEFS, VARIANT_ORDER, flatten } from './variants.js';
 import * as db from './db.js';
 import { computeStats, suggestFocus, computeGlobalReport, computeWeekCount } from './stats.js';
-import { exportCSV } from './csv.js';
+import { exportCSV, importCSV } from './csv.js';
 import { renderHome } from './screens/home.js';
 import { renderShotSession } from './screens/sessionShots.js';
 import { renderBlockSession } from './screens/sessionBlocks.js';
@@ -108,7 +108,7 @@ async function finishSession() {
 }
 
 const ctx = {
-  APP, state, render, db, computeStats, suggestFocus, computeGlobalReport, computeWeekCount, exportCSV,
+  APP, state, render, db, computeStats, suggestFocus, computeGlobalReport, computeWeekCount, exportCSV, importCSV,
   VARIANT_DEFS, VARIANT_ORDER, flatten, persistCurrentSession, startCurrentSession, finishSession,
 };
 

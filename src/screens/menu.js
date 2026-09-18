@@ -3,7 +3,7 @@
 // el home.
 
 export function renderMenu(ctx) {
-  const { APP, state, render, exportCSV } = ctx;
+  const { APP, state, render, exportCSV, importCSV } = ctx;
 
   APP.innerHTML =
     '<div class="gc-header">' +
@@ -15,6 +15,8 @@ export function renderMenu(ctx) {
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-reports" style="margin-bottom:10px;">📊 Reportes y estadisticas</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-goal" style="margin-bottom:10px;">🎯 Meta semanal</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-export" style="margin-bottom:10px;">Exportar todo a CSV</button>' +
+      '<button class="gc-btn gc-btn-ghost" id="gc-menu-import" style="margin-bottom:10px;">Importar historia desde CSV</button>' +
+      '<input type="file" id="gc-menu-import-input" accept=".csv,text/csv" style="display:none;">' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-about">Acerca de esta app</button>' +
     '</div>';
 
@@ -23,4 +25,22 @@ export function renderMenu(ctx) {
   document.getElementById('gc-menu-goal').onclick = () => { state.returnScreen = 'menu'; state.screen = 'weekly-goal'; render(); };
   document.getElementById('gc-menu-export').onclick = () => exportCSV(null);
   document.getElementById('gc-menu-about').onclick = () => { state.screen = 'about'; render(); };
+
+  const importInput = document.getElementById('gc-menu-import-input');
+  document.getElementById('gc-menu-import').onclick = () => importInput.click();
+  importInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    importInput.value = '';
+    if (!file) return;
+    try {
+      const { imported, skipped } = await importCSV(file);
+      alert(imported === 0 && skipped === 0
+        ? 'No se encontraron sesiones en ese archivo.'
+        : imported + ' sesion' + (imported === 1 ? '' : 'es') + ' importada' + (imported === 1 ? '' : 's') +
+          (skipped ? ', ' + skipped + ' omitida' + (skipped === 1 ? '' : 's') + ' (ya estaban en el historial).' : '.'));
+      render();
+    } catch (err) {
+      alert('No se pudo importar el archivo. Revisa que sea un CSV exportado por esta app.');
+    }
+  };
 }
