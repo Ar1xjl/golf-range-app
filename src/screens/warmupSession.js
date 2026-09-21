@@ -4,6 +4,7 @@
 import { WARMUP_PLANS } from '../warmup.js';
 import { cancelRowHtml, wireCancelRow } from '../confirmDiscard.js';
 import { createWakeLockHandle } from '../wakeLock.js';
+import { oncoursePlansCardsHtml } from './oncoursePlans.js';
 
 // El timer re-renderiza toda la pantalla cada segundo (mismo patron de
 // re-render completo que el resto de la app). Singleton de modulo porque
@@ -115,6 +116,8 @@ export function renderWarmupDone(ctx) {
       '<button class="gc-btn gc-btn-gold" id="gc-warmup-done-tempo-btn">🎧 Abrir Tempo Trainer</button>' +
       '<div style="height:10px;"></div>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-warmup-done-home-btn">Volver al inicio</button>' +
+      '<div class="gc-eyebrow" style="color:var(--green); margin-top:22px;">Planes en cancha</div>' +
+      oncoursePlansCardsHtml() +
     '</div>';
 
   document.getElementById('gc-warmup-done-tempo-btn').onclick = () => { state.returnScreen = 'home'; state.screen = 'tempo'; render(); };

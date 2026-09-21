@@ -17,6 +17,7 @@ export function renderMenu(ctx) {
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-export" style="margin-bottom:10px;">Exportar todo a CSV</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-import" style="margin-bottom:10px;">Importar historia desde CSV</button>' +
       '<input type="file" id="gc-menu-import-input" accept=".csv,text/csv" style="display:none;">' +
+      '<button class="gc-btn gc-btn-ghost" id="gc-menu-plans" style="margin-bottom:10px;">Planes en cancha</button>' +
       '<button class="gc-btn gc-btn-ghost" id="gc-menu-about">Acerca de esta app</button>' +
     '</div>';
 
@@ -24,6 +25,7 @@ export function renderMenu(ctx) {
   document.getElementById('gc-menu-reports').onclick = () => { state.screen = 'reports'; render(); };
   document.getElementById('gc-menu-goal').onclick = () => { state.returnScreen = 'menu'; state.screen = 'weekly-goal'; render(); };
   document.getElementById('gc-menu-export').onclick = () => exportCSV(null);
+  document.getElementById('gc-menu-plans').onclick = () => { state.screen = 'oncourse-plans'; render(); };
   document.getElementById('gc-menu-about').onclick = () => { state.screen = 'about'; render(); };
 
   const importInput = document.getElementById('gc-menu-import-input');

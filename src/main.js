@@ -35,6 +35,7 @@ import { renderWarmupSelect } from './screens/warmupSelect.js';
 import { renderWarmupSession, renderWarmupDone, cleanupWarmupTicking } from './screens/warmupSession.js';
 import { renderTempo, cleanupTempoScreen } from './screens/tempo.js';
 import { renderAbout } from './screens/about.js';
+import { renderOncoursePlans } from './screens/oncoursePlans.js';
 import { renderMenu } from './screens/menu.js';
 import { renderReports } from './screens/reports.js';
 import { renderWeeklyGoal } from './screens/weeklyGoal.js';
@@ -152,6 +153,7 @@ function render() {
   if (state.screen === 'warmup-done') return renderWarmupDone(ctx);
   if (state.screen === 'tempo') return renderTempo(ctx);
   if (state.screen === 'about') return renderAbout(ctx);
+  if (state.screen === 'oncourse-plans') return renderOncoursePlans(ctx);
   if (state.screen === 'menu') return renderMenu(ctx);
   if (state.screen === 'reports') return renderReports(ctx);
   if (state.screen === 'weekly-goal') return renderWeeklyGoal(ctx);
