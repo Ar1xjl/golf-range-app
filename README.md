@@ -232,8 +232,11 @@ src/
   main.js              # entry point, orquesta estado y dispatcher de pantallas
   variants.js           # las 5 variantes (A-E) + builders de tiros/bloques
   warmup.js               # los 3 planes de warm-up (10/20-30/45 min)
-  stats.js               # computeStats + suggestFocus (foco sugerido)
-  csv.js                 # export a CSV
+  stats.js               # computeStats + suggestFocus (foco sugerido) + racha/meta semanal
+  reportsStats.js        # agregaciones cruzadas de Reportes (todo el historial)
+  reportsSummary.js      # resumen en lenguaje simple de Reportes (vista por defecto)
+  resultScale.js         # escala de resultado de 3 niveles (Malo/Bueno/Excelente)
+  csv.js                 # export + import de CSV (recuperacion si se reinstala)
   db.js                   # capa de persistencia (IndexedDB)
   confirmDiscard.js        # boton "Cancelar sesion" compartido (2 pasos)
   wakeLock.js               # factory de wake lock (sentinels independientes)
@@ -244,7 +247,8 @@ src/
     player.js             # motor+prefs+wakelock como singleton global (mini-reproductor)
   screens/
     home.js, sessionShots.js, sessionBlocks.js, summary.js, history.js,
-    warmupSelect.js, warmupSession.js, tempo.js, about.js, menu.js, reports.js
+    warmupSelect.js, warmupSession.js, tempo.js, about.js, menu.js, reports.js,
+    reportsCharts.js, weeklyGoal.js, oncoursePlans.js
 scripts/
   generate-icons.mjs    # genera los PNG del icono desde src/icon.svg
 public/icons/           # iconos PWA generados (no editar a mano)

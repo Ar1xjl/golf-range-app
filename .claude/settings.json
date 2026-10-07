@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(node --check *)",
+      "Bash(gh run list *)",
+      "Bash(gh run watch *)",
+      "Bash(gh run view *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(npm ci *)"
+    ],
+    "deny": [
+      "Edit(dist/**)",
+      "Edit(node_modules/**)",
+      "Edit(public/icons/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.js|*.mjs) node --check \"$f\" 1>&2 || exit 2 ;; esac",
+            "statusMessage": "Chequeando sintaxis JS"
+          }
+        ]
+      }
+    ]
+  }
+}
