@@ -129,11 +129,15 @@ Detalles de arquitectura no obvios:
   (`src/wakeLock.js`, factory `createWakeLockHandle()` - cada feature tiene
   su propio sentinel independiente a proposito, para que liberar uno no
   apague el de otro si estan activos al mismo tiempo).
-- **Historial con borrado**: `screens/history.js` muestra tambien las
-  sesiones sin terminar (antes invisibles, solo rescatables via CSV) con
-  tag "En progreso" y boton borrar (confirmacion en dos pasos,
-  `db.deleteSession`). El grafico de tendencia y el foco sugerido siguen
-  usando solo las sesiones finalizadas.
+- **Historial unificado**: `screens/history.js` muestra TODAS las sesiones
+  juntas (todas las variantes, finalizadas y sin terminar), la mas reciente
+  arriba, con fecha/hora y variante en cada fila. Las sin terminar se
+  destacan con su avance ("2/4 bloques") y tocarlas las retoma en el primer
+  tiro sin responder, para continuarlas o finalizarlas. Chips arriba para
+  filtrar por variante: con una elegida aparecen el foco sugerido y el
+  grafico de tendencia (solo finalizadas). Cada fila tiene borrar
+  (confirmacion en dos pasos, `db.deleteSession`). El boton "Ver historial"
+  del home aparece si hay cualquier sesion guardada.
 - **Menu**: icono ☰ arriba a la derecha del home (`screens/menu.js`) con
   Reportes, Exportar a CSV y Acerca de - antes sueltos en el home.
 - **Reportes**: `screens/reports.js` + `computeGlobalReport()` en

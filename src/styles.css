@@ -223,6 +223,23 @@ body.gc-on-tempo-screen #gc-mini-player { display: none; }
   cursor: pointer; color: var(--ink-soft); padding: 3px 8px; -webkit-tap-highlight-color: transparent;
 }
 #gc-app .gc-hist-del-btn.confirm-yes { color: #fff; background: var(--brick); border-radius: 6px; }
+#gc-app .gc-hist-entry.resumable {
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: #EEF3EA; border-radius: 10px; padding: 10px 10px 6px; margin: 4px -10px; border-bottom: none;
+}
+#gc-app .gc-hist-entry.resumable:active { opacity: 0.6; }
+#gc-app .gc-hist-variant { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; }
+#gc-app .gc-hist-meta {
+  display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--ink-soft);
+}
+#gc-app .gc-hist-resume { font-weight: 600; color: var(--green); font-size: 13px; white-space: nowrap; }
+#gc-app .gc-hist-filter { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+#gc-app .gc-hist-chip {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; min-width: 40px; padding: 8px 12px;
+  border: 1.5px solid var(--line); border-radius: 999px; background: none; color: var(--ink);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#gc-app .gc-hist-chip.active { border-color: var(--green); background: #EEF3EA; color: var(--green); font-weight: 600; }
 
 #gc-app .gc-not-started-hint {
   text-align: center; font-size: 12px; color: var(--ink-soft);

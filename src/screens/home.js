@@ -23,7 +23,8 @@ export async function renderHome(ctx) {
   // Racha y meta semanal: cuentan TODAS las variantes (A-E), no solo la
   // seleccionada - es "cuanto practicaste esta semana", no "cuanto
   // practicaste esta variante". Mismo criterio que Reportes (computeGlobalReport).
-  const allFinished = (await db.getAllSessions()).filter((s) => s.finished);
+  const allSessions = await db.getAllSessions();
+  const allFinished = allSessions.filter((s) => s.finished);
   const report = computeGlobalReport(allFinished);
   const weekCount = computeWeekCount(allFinished);
   const weeklyGoal = await db.getSetting('weeklyGoal');
@@ -98,7 +99,10 @@ export async function renderHome(ctx) {
         '<div class="gc-eyebrow" style="color:var(--green)">Elegir variante</div>' +
         pillsHtml +
       '</div>' +
-      (sessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + sessions.length + ')</button>' : '') +
+      // Historial unificado (todas las variantes, incluidas las sin terminar):
+      // el boton aparece si hay cualquier sesion guardada, no solo de la
+      // variante seleccionada.
+      (allSessions.length ? '<button class="gc-btn gc-btn-ghost" id="gc-hist-btn">Ver historial (' + allSessions.length + ')</button>' : '') +
     '</div>';
 
   document.getElementById('gc-menu-btn').onclick = () => { state.screen = 'menu'; render(); };
