@@ -59,6 +59,10 @@ prep pre-ronda: no tienen Think Box/Play Box/resultado).
   sobrevivir a los re-render) muestra el preset activo y un boton de
   Detener desde cualquier lado. Se esconde sola en la pantalla completa del
   Tempo Trainer (los controles ya estan ahi).
+- **Planes en cancha** (`src/screens/oncoursePlans.js`): tarjeta de solo
+  lectura, accesible desde el menu y al final del warm-up. 5 protocolos
+  si-entonces: tee del hoyo 1 (Plan 0, declaracion para leer y enfocarse),
+  mal drive, distraccion con amigos, cierre de hoyo y llegada al tee.
 
 Detalles de arquitectura no obvios:
 - `src/tempo/player.js` es el motor + preferencias + wake lock como

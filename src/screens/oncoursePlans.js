@@ -1,12 +1,17 @@
-// Planes en cancha: 4 protocolos si-entonces para sostener la rutina mental
-// bajo presion (mal drive, distraccion con amigos, cierre de hoyo, llegada
-// al tee). Es contenido de lectura/referencia, no un tracker: sin
+// Planes en cancha: 5 protocolos si-entonces para sostener la rutina mental
+// bajo presion (tee del hoyo 1, mal drive, distraccion con amigos, cierre
+// de hoyo, llegada al tee). Es contenido de lectura/referencia, no un tracker: sin
 // checkboxes ni registro, pensado para repasarse en 20-30 segundos parado
 // en el tee. El mismo contenido se muestra en dos lugares (renderOncoursePlans,
 // pantalla propia siempre accesible desde el menu; y embebido al final del
 // warm-up en warmupSession.js) por eso vive separado de ambas pantallas.
 
 const PLANS = [
+  {
+    title: 'Plan 0 — Tee del hoyo 1',
+    si: 'llego al tee del hoyo 1...',
+    entonces: 'leo esto y me enfoco: "Hoy soy un golfista que confía en su proceso. Juego cada golpe con mi rutina: en el Think Box decido, después respiro, estiro la espalda y cruzo la línea, y en el Play Box ejecuto sin dudar. Luego miro el resultado sin juicio, marco el check en mi tarjeta y sigo caminando. Al llegar a cada tee, toco la toalla o tomo un trago de agua fresca, siento la sensación en el cuerpo y dejo atrás el hoyo jugado. Si me apuro o me distraigo, reinicio con el cuerpo: respiro, siento, vuelvo. Elijo el golpe inteligente antes que el vistoso, dejo que el swing fluya con ritmo y disfruto el proceso, sin que mi ego dependa de la mirada de nadie. Hoy me quedo con la rutina, y el score es consecuencia."',
+  },
   {
     title: 'Plan 1 — Despues de un mal drive',
     si: 'pego un mal drive y siento el impulso de "recuperar todo de un golpe"...',
@@ -49,7 +54,7 @@ export function renderOncoursePlans(ctx) {
       '<button class="gc-nav-back" id="gc-back-btn">◂ VOLVER</button>' +
       '<div class="gc-eyebrow">GolfSaber</div>' +
       '<h1 class="gc-title">Planes en cancha</h1>' +
-      '<div class="gc-sub">4 protocolos si-entonces para sostener la rutina bajo presion</div>' +
+      '<div class="gc-sub">5 protocolos si-entonces para sostener la rutina bajo presion</div>' +
     '</div>' +
     '<div class="gc-body">' +
       oncoursePlansCardsHtml() +
